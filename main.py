@@ -1,75 +1,8 @@
 from player import *
+from object import *
 
 from pico2d import *
 from random import *
-
-
-
-class Background:
-    def __init__(self):
-        self.x, self.y = 400, 300
-        self.image = load_image('bg-grassland.png')
-
-    def draw(self):
-        self.image.draw(self.x, self.y)
-
-    pass
-
-
-class Block:
-    def __init__(self):
-        self.image = load_image('block30.png')
-        self.x, self.y = 200, 150
-        self.frame = 0
-        self.broke = 0
-        self.case = 1
-
-    def draw(self):
-        if self.broke == 0:
-            if self.case == 0: self.image.clip_draw(30*self.frame, 60, 30, 30, self.x, self.y)
-            elif self.case == 1: self.image.clip_draw(30*self.frame, 30, 30, 30, self.x, self.y)
-        else:
-            self.image.clip_draw(0, 0, 30, 30, self.x, self.y)
-
-
-    def update(self):
-        self.frame = (self.frame+1) % 4
-
-    pass
-
-
-class Platform:
-    def __init__(self):
-        self.x, self.y = 50, 50
-        self.image = load_image('tiles.png')
-        self.case = 0
-
-    def draw(self):
-        if self.case == 0:
-            self.image.clip_draw(30, 30, 30, 30, self.x, self.y)
-
-    pass
-
-
-class Item:
-    def __init__(self,case):
-        self.x, self.y = 100, 160
-        self.image = load_image('Item.png')
-        self.case = case
-        self.direction = -1
-        if self.case == 0: self.direction = randint(0, 2)
-
-    def draw(self):
-        if self.case == 0:
-            self.image.clip_draw(0,30,30,30,self.x,self.y)
-        elif self.case == 1:
-            self.image.clip_draw(0,0,30,30,self.x,self.y)
-
-    def move(self):
-        if self.direction == 0:
-            self.x -= 2
-        elif self.direction == 1: self.x += 2
-
 
 def handle_events():
     global running
@@ -88,7 +21,8 @@ def handle_events():
                 player.running = 1
                 player.dir += 1
             elif event.key == SDLK_SPACE:
-                if player.jumping == 0 and player.onAir == 0 : player.jumping = 1
+                if player.jumping == 0 and player.onAir == 0:
+                    player.jumping = 1; player.onAir == 1;
         elif event.type == SDL_KEYUP:
             if event.key == SDLK_LEFT:
                 player.dir += 1
@@ -102,36 +36,72 @@ def handle_events():
 
 def check_Collision():
     global player
-    global block
-    global item
+    global itemBlock
     global grassTile1
+    global coins
+    global item
+    global itemBlock
+    airCheck = 1
 
-    player.onAir = 1 #항상 공중으로 초기화
-    # 옆에서 진입 시 충돌
-    if block.x + 15 > player.x + player.speed > block.x - 15 and player.y+30 > block.y+15 and player.y-30 < block.y - 15:
-        if player.speed > 0:
-            player.x = block.x - 30
-        elif player.speed < 0:
-            player.x = block.x + 30
-        player.speed = 0
+    # 아이템 블록과 충돌
+    for block in itemBlock:
+        # 옆에서 진입 시 충돌
+        if block.x + 15 > player.x + player.speed > block.x - 15 and player.y+30 > block.y+15 and player.y-30 < block.y - 15:
+            if player.speed > 0:
+                player.x = block.x - 30
+            elif player.speed < 0:
+                player.x = block.x + 30
+            player.speed = 0
 
-    # 착지 블록 충돌
-    if block.y + 12 > player.y - player.h/2 > block.y and player.x + 15 > block.x - 15 and player.x - 15 < block.x + 15:
-        player.jumping = 0
-        player.jumpCnt = 0
-        player.onAir = 0
-        player.y = block.y + 15 + player.h/2
-
-    # 점프로 블록 충돌
-    if player.jumping > 0 and block.y + 15 > player.y + player.h/2 > block.y - 15 and player.x + 15 > block.x - 15 and player.x - 15 < block.x + 15:
-        if player.power == 0:
-            block.broke = 1
+        # 착지 블록 충돌
+        if block.y + 12 > player.y - player.h/2 > block.y and player.x + 15 > block.x - 15 and player.x - 15 < block.x + 15:
             player.jumping = 0
             player.jumpCnt = 0
-        elif player.power == 2:
-            block.broke = 2
+            player.y = block.y + 15 + player.h/2
+            airCheck = 0
+
+        # 점프로 블록 충돌
+        if player.jumping > 0 and block.y + 15 > player.y + player.h/2 > block.y - 15 and player.x + 15 > block.x - 15 and player.x - 15 < block.x + 15:
+            if player.power == 0:
+                block.broke = 1
+                player.jumping = 0
+                player.jumpCnt = 0
+                item.x = block.x
+                item.y = block.y+30
+                if item.case == 0: item.direction = randint(0,1)
+                item.active = 1
+            elif player.power == 1:
+                block.broke = 2
+                player.jumping = 0
+                player.jumpCnt = 0
+
+    # 노말 블록 충돌
+    for block in normalBlock:
+        # 옆에서 진입 시 충돌
+        if block.x + 15 > player.x + player.speed > block.x - 15 and player.y+30 > block.y+15 and player.y-30 < block.y - 15:
+            if player.speed > 0:
+                player.x = block.x - 30
+            elif player.speed < 0:
+                player.x = block.x + 30
+            player.speed = 0
+
+        # 착지 블록 충돌
+        if block.y + 12 > player.y - player.h/2 > block.y and player.x + 15 > block.x - 15 and player.x - 15 < block.x + 15:
             player.jumping = 0
             player.jumpCnt = 0
+            player.y = block.y + 15 + player.h/2
+            airCheck = 0
+
+        # 점프로 블록 충돌
+        if player.jumping > 0 and block.y + 15 > player.y + player.h/2 > block.y - 15 and player.x + 15 > block.x - 15 and player.x - 15 < block.x + 15:
+            if player.power == 0:
+                block.broke = 1
+                player.jumping = 0
+                player.jumpCnt = 0
+            elif player.power == 1:
+                block.broke = 2
+                player.jumping = 0
+                player.jumpCnt = 0
 
     # 아이템 충돌
     if player.x - 15 < item.x+15 and player.x + 15 > item.x - 15 and player.y + player.h/2 > item.y > player.y - player.h/2:
@@ -144,30 +114,50 @@ def check_Collision():
             player.power = 2
 
     # 플랫폼 충돌
-    for i in range(0,10+1):
-        if grassTile1[i].y + 15 > player.y - player.h/2 > grassTile1[i].y and player.x + 15 > grassTile1[i].x - 15 and player.x - 15 < grassTile1[i].x + 15:
+    for tile in grassTile1:
+        if tile.y + 15 > player.y - player.h/2 > tile.y and player.x + 15 > tile.x - 15 and player.x - 15 < tile.x + 15:
             player.jumping = 0
             player.jumpCnt = 0
-            player.onAir = 0
-            player.y = grassTile1[i].y + 15 + player.h/2
+            player.y = tile.y + 15 + player.h/2
+            airCheck = 0
+
+    #코인 충돌
+    for coin in coins:
+         if player.x - 15 < coin.x+15 and player.x + 15 > coin.x - 15 and player.y + player.h/2 > coin.y > player.y - player.h/2:
+             coin.x, coin.y = -10, -10
 
 
+
+    # 공중 판정
+    if airCheck: player.onAir = 1
+    else: player.onAir = 0
 
 # 초기화
 
+havecoin = 0 #먹은 코인
 
 open_canvas()
 
 running = True
 background = Background()
-block = Block()
 player = Player()
-item = Item(1); item.x, item.y = 300,80
-item0 = Item(0)
-grassTile1 = [Platform() for i in range(11)]
-for i in range(0,10+1):
+item = Item()
+itemBlock = [Block() for i in range(2)]
+normalBlock = [Block() for i in range(3)]
+grassTile1 = [Platform() for i in range(21)]
+coins = [Coin() for i in range(4)]
+for ib in itemBlock:
+    ib.x, ib.y = 100,180
+    ib.case = 1
+itemBlock[0].x, itemBlock[0].y = 200, 150
+itemBlock[1].x, itemBlock[1].y = 380, 250
+
+for i in range(0,20+1):
     grassTile1[i].case = 0
     grassTile1[i].x, grassTile1[i].y = 30*i, 50
+
+for i in range(0,4):
+    coins[i].x, coins[i].y = i * 30 + 340, 80
 
 
 while running:
@@ -175,10 +165,15 @@ while running:
 
     handle_events()
     player.move()
-    item.move()
-    item0.move()
+    for ib in itemBlock:
+        ib.update()
+    for i in range(3):
+        normalBlock[i].x, normalBlock[i].y = 350 + i*30, 150
+        normalBlock[i].update()
     check_Collision()
-    block.update()
+    item.update()
+    for coin in coins:
+        coin.update()
 
     #그려.
 
@@ -186,9 +181,14 @@ while running:
     background.draw()
     item.draw()
     player.draw()
-    block.draw()
-    for i in range(0,10+1):
+    for i in range(0,20+1):
         grassTile1[i].draw()
+    for ib in itemBlock:
+        ib.draw()
+    for nb in normalBlock:
+        nb.draw()
+    for coin in coins:
+        coin.draw()
 
     update_canvas()
 

@@ -100,10 +100,12 @@ class Player:
 
     def move(self):
         if self.power != 0: self.h = 60
+        else: self.h = 30
         # 점프
         if self.jumping == 1:
             if self.jumpCnt <= 10: self.y += 20
             self.jumpCnt += 1
+            self.onAir = 1
         else: self.jumpCnt = 0
 
         # 중력
@@ -123,6 +125,8 @@ class Player:
                     self.speed += 2
                 elif self.speed > 0:
                     self.speed -= 2
+                if self.speed == -1 or self.speed == 1:
+                    self.speed = 0
             self.x += self.speed
 
         self.frame += 1
