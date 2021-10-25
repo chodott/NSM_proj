@@ -130,6 +130,6 @@ class Player:
             self.x += self.speed
 
         self.frame += 1
-        self.frame = self.frame % 3
+        self.frame = self.frame % 4
     pass
 
