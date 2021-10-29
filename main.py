@@ -1,6 +1,6 @@
 from player import *
 from object import *
-
+from enemy import *
 from pico2d import *
 from random import *
 
@@ -175,6 +175,10 @@ itemBlock = [Block() for i in range(2)]
 normalBlock = [Block() for i in range(3)]
 grassTile1 = [Platform() for i in range(21)]
 coins = [Coin() for i in range(4)]
+goombas = [Goomba() for i in range(2)]
+troopas = [Troopa() for i in range(2)]
+goombas[0].x, goombas[0].y = 400, 500
+troopas[0].x, troopas[0].y = 400,400
 for ib in itemBlock:
     ib.x, ib.y = 100,180
     ib.case = 1
@@ -205,6 +209,10 @@ while running:
         ib.update()
     for i in range(3):
         normalBlock[i].update()
+    for goomba in goombas:
+        goomba.update()
+    for troopa in troopas:
+        troopa.update()
 
     #그려.
 
@@ -221,6 +229,10 @@ while running:
         nb.draw()
     for coin in coins:
         coin.draw()
+    for goomba in goombas:
+        goomba.draw()
+    for troopa in troopas:
+        troopa.draw()
 
     update_canvas()
 
