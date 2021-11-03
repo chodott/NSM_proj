@@ -38,37 +38,38 @@ def check_Collision():
     global coins
     global items
     global itemBlock
+    global goombas
     airCheck = 1
     # 아이템 블록과 충돌
-    for i in range(2):
+    for ib in itemBlock:
         # 착지 블록 충돌
-        if itemBlock[i].y + 12 > player.y - player.h / 2 > itemBlock[i].y and player.x + 15 > itemBlock[i].x - 15 and player.x - 15 < itemBlock[i].x + 15:
+        if ib.y + 12 > player.y - player.h / 2 > ib.y and player.x + 15 > ib.x - 15 and player.x - 15 < ib.x + 15:
             player.jumping = 0
             player.jumpCnt = 0
             player.onAir = 0
-            player.y = itemBlock[i].y + 15 + player.h / 2
+            player.y = ib.y + 15 + player.h / 2
             airCheck = 0
             break
 
         # 옆에서 진입 시 충돌
-        elif itemBlock[i].x + 15 > player.x + player.speed > itemBlock[i].x - 15 and player.y+30 > itemBlock[i].y+15 and player.y-30 < itemBlock[i].y - 15:
+        elif ib.x + 15 > player.x + player.speed > ib.x - 15 and player.y+30 > ib.y+15 and player.y-30 < ib.y - 15:
             if player.speed > 0:
-                player.x = itemBlock[i].x - 30
+                player.x = ib.x - 30
             elif player.speed < 0:
-                player.x = itemBlock[i].x + 30
+                player.x = ib.x + 30
             player.speed = 0
             break
 
 
         # 점프로 블록 충돌
-        elif player.jumping > 0 and itemBlock[i].y + 15 > player.y + player.h/2 > itemBlock[i].y - 15 and player.x + 15 > itemBlock[i].x - 15 and player.x - 15 < itemBlock[i].x + 15:
-            itemBlock[i].broke = 1
+        elif player.jumping > 0 and ib.y + 15 > player.y + player.h/2 > ib.y - 15 and player.x + 15 > ib.x - 15 and player.x - 15 < ib.x + 15:
+            ib.broke = 1
             player.jumping = 0
             player.jumpCnt = 0
-            items[i].x = itemBlock[i].x
-            items[i].y = itemBlock[i].y+30
-            if items[i].case == 0: item.direction = 1
-            items[i].active = 1
+            item.x = ib.x
+            item.y = ib.y+30
+            if item.case == 0: item.direction = 1
+            item.active = 1
             break
 
     # 노말 블록 충돌
@@ -115,13 +116,13 @@ def check_Collision():
     if airCheck == 1: player.onAir = 1
 
     # 아이템 충돌
-    for i in range(2):
-        if player.x - 15 < items[i].x+15 and player.x + 15 > items[i].x - 15 and player.y + player.h/2 > items[i].y > player.y - player.h/2:
-            items[i].x, items[i].y = -10, -10
-            if items[i].case == 0:
+    for item in items:
+        if player.x - 15 < item.x+15 and player.x + 15 > item.x - 15 and player.y + player.h/2 > item.y > player.y - player.h/2:
+            item.x, item.y = -10, -10
+            if item.case == 0:
                 if player.power == 0: player.y += 30
                 player.power = 1
-            elif items[i].case == 1:
+            elif item.case == 1:
                 if player.power == 0: player.y += 30
                 player.power = 2
 
@@ -130,19 +131,20 @@ def check_Collision():
          if player.x - 15 < coin.x+15 and player.x + 15 > coin.x - 15 and player.y + player.h/2 > coin.y > player.y - player.h/2:
              coin.x, coin.y = -10, -10
 
-    #아이템과 블록 충돌
-    for i in range(2):
+    #적, 아이템 아이템 블록 충돌
+    for ib in itemBlock:
         # 착지 블록 충돌
-        for j in range(2):
-            if itemBlock[i].y + 12 > items[j].y - 15 > itemBlock[i].y and items[j].x + 15 > itemBlock[i].x - 15 and items[j].x - 15 < itemBlock[i].x + 15:
-                items[j].y = itemBlock[i].y + 30
+        for item in items:
+            if ib.y + 12 > item.y - 15 > ib.y and item.x + 15 > ib.x - 15 and item.x - 15 < ib.x + 15:
+                item.y = ib.y + 30
                 break
 
         # 옆에서 진입 시 충돌
-            elif itemBlock[i].x + 15 > items[j].x + 2 > itemBlock[i].x - 15 and items[j].y + 30 > itemBlock[i].y + 15 and items[j].y - 30 < itemBlock[i].y - 15:
+            elif ib.x + 15 > item.x + 2 > ib.x - 15 and item.y + 30 > ib.y + 15 and item.y - 30 < ib.y - 15:
                 #미작성
                 break
-     # 노말 블록 충돌
+
+     #적, 아이템 노말 블록 충돌
     for block in normalBlock:
         for j in range(2):
             # 옆에서 진입 시 충돌
@@ -160,6 +162,15 @@ def check_Collision():
             if tile.y + 15 > items[i].y - 15 > tile.y and items[i].x + 15 > tile.x - 15 and items[i].x - 15 < tile.x + 15:
                 items[i].y = tile.y + 30
                 break
+        for goomba in goombas:
+            if tile.y + 15 > goomba.y - goomba.height/2 > tile.y and goomba.x + goomba.width/2 > tile.x - 15 and goomba.x - goomba.width/2 < tile.x + 15:
+                goomba.y = tile.y + 30
+                break
+        for troopa in troopas:
+            if tile.y + 15 > troopa.y - troopa.height/2 > tile.y and troopa.x + troopa.width/2 > tile.x - 15 and troopa.x - troopa.width/2 < tile.x + 15:
+                troopa.y = tile.y + 40
+                break
+
 
 # 초기화
 

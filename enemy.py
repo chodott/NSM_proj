@@ -1,12 +1,12 @@
 from pico2d import *
-
+# enemy 중력 + 캐릭터 상호작용 필요
 class Goomba:
     def __init__(self):
         self.image = load_image('goomba.png')
         self.x, self.y = -10,-10
         self.width, self.height = 30,30
         self.dir = -1
-        self.speed = 3
+        self.speed = -3
         self.frame = 1
         self.condition = 0 #1: 죽음 0: 생존
         self.deathcnt = 0
@@ -16,6 +16,7 @@ class Goomba:
         else: self.image.clip_draw(0,240-self.frame*30,30,30,self.x,self.y)
 
     def update(self):
+        self.y -= 10
         if self.condition:
             self.deathcnt += 1
             if self.deatcnt == 3:
@@ -31,7 +32,7 @@ class Troopa:
         self.x, self.y = -10, -10
         self.width, self.height = 30, 50
         self.dir = -1
-        self.speed = 2
+        self.speed = -2
         self.frame = 0
         self.condition = 1 #0 : 등껍질 1: 정상 2: 날개
         self.boundary = 400
@@ -46,8 +47,8 @@ class Troopa:
             self.image.clip_draw(0, 800 - 50 - self.frame * 50, self.width, self.height, self.x, self.y);
 
 
-
     def update(self):
+        self.y -= 5
         if self.condition == 0:
             self.x += self.speed
             self.height = 30
