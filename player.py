@@ -5,7 +5,7 @@ class Player:
         self.image = load_image('mini30.png')
         self.x, self.y = (50,200)
         self.w, self.h = 30, 30
-        self.power = 0
+        self.power = 1
         self.speed = 0
         self.frame = 0
         self.idle_dir = 1
@@ -15,6 +15,7 @@ class Player:
         self.runCnt = 0
         self.jumpCnt = 0
         self.onAir = 1
+        self.hitTimer = 0
 
     def draw(self):
         # 꼬마 마리오

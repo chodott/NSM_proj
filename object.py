@@ -108,3 +108,4 @@ class Background:
         self.image.draw(self.x, self.y)
 
     pass
+
