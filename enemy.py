@@ -64,3 +64,36 @@ class Troopa:
                 self.y += 3
 
 
+class Ghost:
+    def __init__(self):
+        self.image = load_image('ghost.png')
+        self.x, self.y = -10, -10
+        self.width, self.height = 30, 30
+        self.dir = -1
+        self.speed = 2
+        self.frame = 0
+        self.condition = 1  # 0 : 정지 1: 추격
+        self.boundary = 400
+
+    def draw(self):
+        #상태에 맞는 그리기 필요
+        if self.condition == 0 and self.dir > 0:
+            self.image.clip_draw(0, 800 - 50 - self.frame * 50, self.width, self.height, self.x, self.y);
+
+        elif self.condition == 0 and self.dir < 0:
+            self.image.clip_draw(0, 800 - 50 - self.frame * 50, self.width, self.height, self.x, self.y);
+
+        elif self.condition == 1 and self.dir > 0:
+            self.image.clip_draw(0, 800 - 50 - self.frame * 50, self.width, self.height, self.x, self.y);
+
+        elif self.condition == 1 and self.dir < 0:
+            self.image.clip_draw(0, 800 - 50 - self.frame * 50, self.width, self.height, self.x, self.y);
+
+    def update(self):
+        #플레이어와 부끄의 방향이 같을 때 부끄 정지
+        self.condition = 0
+        self.frame = 0
+
+        #방향이 다를 때 부끄 캐릭터 방향으로
+        self.condition = 1
+        self.frame = 1
