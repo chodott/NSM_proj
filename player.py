@@ -1,11 +1,15 @@
+# 파이어볼 곡선이동, 충돌처리, 탄환추가, 파워가 변해도 유지 추가 필요
+
+
 from pico2d import *
+
 
 class Player:
     def __init__(self):
         self.image = load_image('mini30.png')
         self.x, self.y = (50,200)
         self.w, self.h = 30, 30
-        self.power = 1
+        self.power = 2
         self.speed = 0
         self.frame = 0
         self.idle_dir = 1
@@ -16,6 +20,8 @@ class Player:
         self.jumpCnt = 0
         self.onAir = 1
         self.hitTimer = 0
+        self.attack = 0
+        self.fb = FireBall()
 
     def draw(self):
         # 꼬마 마리오
@@ -98,6 +104,11 @@ class Player:
                     else: self.image.clip_draw(0, 600 - 240, self.w, self.h, self.x, self.y)
                 else: self.image.clip_draw(30 * self.frame, 600 - 240, self.w, self.h, self.x, self.y)
 
+            # 파이어볼
+            if self.fb.condition == 1:
+                self.fb.draw()
+
+            pass
 
     def move(self):
         if self.power != 0: self.h = 60
@@ -132,5 +143,49 @@ class Player:
 
         self.frame += 1
         self.frame = self.frame % 4
+
+        # 공격
+        if self.attack:
+            self.fb.condition = 1
+            if self.idle_dir == 1:
+                self.fb.x , self.fb.y = self.x + 30, self.y - 10
+            elif self.idle_dir == -1:
+                self.fb.x, self.fb.y = self.x - 30, self.y - 10
+            self.fb.dir = self.idle_dir
+            self.attack = 0
+
+        if self.fb.condition == 1:
+            self.fb.update()
+
     pass
 
+
+class FireBall:
+    def __init__(self):
+        self.image = load_image('fireball.png')
+        self.x, self.y = -100, -100
+        self.dir = 0
+        self.speed = 10
+        self.bounce = 0
+        self.condition = 0
+        self.bounceTimer = 4
+        self.frame = 0
+
+    def draw(self):
+        self.image.clip_draw(self.frame*20,0,20,20,self.x,self.y)
+
+    def update(self):
+        if self.bounce:
+            self.y += 6
+            self.bounceTimer -= 1
+        else:
+            self.y -= 6
+            self.bounceTimer = 4
+
+        if self.bounceTimer == 0:
+            self.bounce = 0
+
+        self.x += self.dir * self.speed
+        self.frame = (self.frame + 1) % 4
+
+        pass

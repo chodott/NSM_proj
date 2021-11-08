@@ -55,7 +55,7 @@ def handle_events():
     for event in events:
         if event.type == SDL_QUIT:
             running = False
-        elif event.type == SDL_KEYDOWN and event.key == SDLK_SPACE and player.onAir == 0:
+        elif event.type == SDL_KEYDOWN and event.key == SDLK_UP and player.onAir == 0:
             player.jumping = 1
         elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
             running = False
@@ -69,10 +69,10 @@ def handle_events():
             player.idle_dir = 1
         elif event.type == SDL_KEYUP and event.key == SDLK_LEFT:
             player.dir += 1
-            player.idle_dir = -1
-        elif event.key == SDLK_RIGHT:
+        elif event.type == SDL_KEYUP and event.key == SDLK_RIGHT:
             player.dir -= 1
-            player.idle_dir = 1
+        elif event.type == SDL_KEYDOWN and event.key == SDLK_SPACE and player.power == 2:
+            player.attack = 1
 
     pass
 
@@ -161,6 +161,10 @@ def check_Collision():
             airCheck = 0
             break
 
+        #파이어볼, 플랫폼
+        if tile.y + 15 > player.fb.y - 10 > tile.y and player.fb.x + 10 > tile.x - 15 and player.fb.x - 10 < tile.x + 15:
+            player.fb.bounce = 1
+
     if airCheck == 1: player.onAir = 1
 
     # 아이템 충돌
@@ -211,39 +215,75 @@ def check_Collision():
                 items[i].y = tile.y + 30
                 break
         for goomba in goombas:
-            if tile.y + 15 > goomba.y - goomba.h/2 > tile.y and goomba.x + goomba.w/2 > tile.x - 15 and goomba.x - goomba.w/2 < tile.x + 15:
-                goomba.y = tile.y + 30
+            if tile.y + 15 > goomba.y - goomba.h/2 > tile.y and goomba.x + goomba.w/2 > tile.x - 15 and goomba.x - goomba.w/2 < tile.x + 15 and goomba.condition != -1:
+                goomba.y = tile.y + 15 + goomba.h/2
                 break
         for troopa in troopas:
             if tile.y + 15 > troopa.y - troopa.h/2 > tile.y and troopa.x + troopa.w/2 > tile.x - 15 and troopa.x - troopa.w/2 < tile.x + 15:
-                troopa.y = tile.y + 40
+                troopa.y = tile.y + 15 + troopa.h/2
                 break
 
     #플레이어, 적 충돌
     for goomba in goombas:
 
+        #점프 충돌
+        if goomba.y + goomba.h/2 > player.y - player.h/2 - 10 > goomba.y \
+                and (goomba.x - goomba.w/2 < player.x - player.w/2 < goomba.x + goomba.w/2 or goomba.x - goomba.w/2 < player.x + player.w/2 < goomba.x + goomba.h/2)\
+                and goomba.condition == 0:
+            goomba.death(0)
+
+
         #정면 충돌
-        if (goomba.x - goomba.w/2 < player.x + player.w/2 < goomba.x + goomba.w/2 or goomba.x - goomba.w/2 < player.x - player.w/2 < goomba.x + goomba.w/2)\
-                and player.y + player.h/2 > goomba.y + goomba.h/2 > player.y - player.h/2:
+        elif (goomba.x - goomba.w/2 < player.x + player.w/2 < goomba.x + goomba.w/2 or goomba.x - goomba.w/2 < player.x - player.w/2 < goomba.x + goomba.w/2)\
+                and player.y + player.h/2 > goomba.y + goomba.h/2 > player.y - player.h/2 and goomba.condition == 0:
             if player.hitTimer == 0:
                 player.power -= 1
                 player.hitTimer = 400
 
+        #파이어볼 충돌
+        elif (goomba.y - goomba.h/2 < player.fb.y - 10 < goomba.y + goomba.h/2 or goomba.y - goomba.h/2 < player.fb.y + 10 < goomba.y + goomba.h/2)\
+                and (goomba.x - goomba.w/2 < player.fb.x + 10 < goomba.x+goomba.w/2 or goomba.x - goomba.w/2 < player.fb.x - 10 < goomba.x + goomba.w/2):
+            goomba.death(1)
+
     for troopa in troopas:
 
+        # 점프 충돌
+        if troopa.y + troopa.h / 2 > player.y - player.h / 2 - 10 > troopa.y \
+                and (troopa.x - troopa.w / 2 < player.x - player.w / 2 < troopa.x + troopa.w / 2 or troopa.x - troopa.w / 2 < player.x + player.w / 2 < troopa.x + troopa.h / 2) \
+                and troopa.condition > 0:
+            troopa.condition -= 1
+            if troopa.condition == 0: troopa.speed = 0
+
         # 정면 충돌
-        if troopa.x - troopa.w / 2 < player.x + player.w / 2 < troopa.x + troopa.w / 2 or troopa.x - troopa.w / 2 < player.x - player.w / 2 < troopa.x + troopa.w / 2 \
+        if (troopa.x - troopa.w / 2 < player.x + player.w / 2 < troopa.x + troopa.w / 2 or troopa.x - troopa.w / 2 < player.x - player.w / 2 < troopa.x + troopa.w / 2) \
                 and player.y + player.h / 2 > troopa.y + troopa.h / 2 > player.y - player.h / 2:
             if player.hitTimer == 0:
                 player.power -= 1
                 player.hitTimer = 400
 
+        #파이어볼 충돌
+        elif (troopa.y - troopa.h/2 < player.fb.y - 10 < troopa.y + troopa.h/2 or troopa.y - troopa.h/2 < player.fb.y + 10 < troopa.y + troopa.h/2)\
+                and (troopa.x - troopa.w/2 < player.fb.x + 10 < troopa.x+troopa.w/2 or troopa.x - troopa.w/2 < player.fb.x - 10 < troopa.x + troopa.w/2):
+            troopa.condition = -1
+
+
     for boo in boos:
-        if boo.x - boo.w / 2 < player.x + player.w / 2 < boo.x + boo.w / 2 or boo.x - boo.w / 2 < player.x - player.w / 2 < boo.x + boo.w / 2 \
+
+        # 점프 충돌
+        if boo.y + boo.h / 2 > player.y - player.h / 2 - 10 > boo.y \
+                and (boo.x - boo.w / 2 < player.x - player.w / 2 < boo.x + boo.w / 2 or boo.x - boo.w / 2 < player.x + player.w / 2 < boo.x + boo.h / 2) \
+                and boo.condition > 0:
+            boo.condition -= 1
+            if boo.condition == 0: boo.speed = 0
+
+        # 정면 충돌
+        if (boo.x - boo.w / 2 < player.x + player.w / 2 < boo.x + boo.w / 2 or boo.x - boo.w / 2 < player.x - player.w / 2 < boo.x + boo.w / 2) \
                 and player.y + player.h / 2 > boo.y + boo.h / 2 > player.y - player.h / 2:
             if player.hitTimer == 0:
                 player.power -= 1
                 player.hitTimer = 400
+
+
 
 
 # 초기화
