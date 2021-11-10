@@ -3,8 +3,35 @@ from object import *
 from enemy import *
 from pico2d import *
 from random import *
+from game_framework import *
 
-def game_draw():
+
+name = "MainState"
+
+
+def enter():
+    global background, player
+    global itemBlock, normalBlock, grassTile1
+    global coins, items
+    global goombas, troopas, boos
+
+    background = Background()
+    player = Player()
+    items = [Item() for i in range(2)]
+    itemBlock = [Block() for i in range(2)]
+    normalBlock = [Block() for i in range(3)]
+    grassTile1 = [Platform() for i in range(21)]
+    coins = [Coin() for i in range(4)]
+    goombas = [Goomba() for i in range(2)]
+    troopas = [Troopa() for i in range(2)]
+    boos = [Boo() for i in range(2)]
+
+    initialize()
+
+    pass
+
+
+def draw():
     clear_canvas()
     background.draw()
     player.draw()
@@ -27,8 +54,22 @@ def game_draw():
 
     update_canvas()
 
+    pass
 
-def game_loop():
+
+def exit():
+    global background, player
+    global itemBlock, normalBlock, grassTile1
+    global coins, items
+    global goombas, troopas, boos
+    del(background); del(player)
+    del(itemBlock); del(normalBlock); del(grassTile1)
+    del(coins); del(items)
+    del(goombas); del(troopas); del(boos)
+    pass
+
+
+def update():
     handle_events()
     player.move()
     check_Collision()
@@ -49,16 +90,15 @@ def game_loop():
 
 
 def handle_events():
-    global running
     global player
     events = get_events()
     for event in events:
         if event.type == SDL_QUIT:
-            running = False
+            quit()
         elif event.type == SDL_KEYDOWN and event.key == SDLK_UP and player.onAir == 0:
             player.jumping = 1
         elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
-            running = False
+            quit()
         elif event.type == SDL_KEYDOWN and event.key == SDLK_LEFT:
             player.running = 1
             player.dir -= 1
@@ -285,52 +325,44 @@ def check_Collision():
 
 
 
+def initialize():
+    goombas[0].x, goombas[0].y = 400, 500
+    troopas[0].x, troopas[0].y = 400, 400
+    boos[0].x, boos[0].y = 400, 400
+    for ib in itemBlock:
+        ib.x, ib.y = 100, 180
+        ib.case = 1
+    itemBlock[0].x, itemBlock[0].y = 200, 150;
+    items[0].case = 0
+    itemBlock[1].x, itemBlock[1].y = 380, 250;
+    items[1].case = 1
+    for i in range(3):
+        normalBlock[i].x, normalBlock[i].y = 350 + i * 30, 150
+
+    for i in range(0, 20 + 1):
+        grassTile1[i].case = 0
+        grassTile1[i].x, grassTile1[i].y = 30 * i, 50
+
+    for i in range(0, 4):
+        coins[i].x, coins[i].y = i * 30 + 340, 80
+
 
 # 초기화
 
 havecoin = 0 #먹은 코인
 
-open_canvas()
-running = True
-background = Background()
-player = Player()
-items = [Item() for i in range(2)]
-itemBlock = [Block() for i in range(2)]
-normalBlock = [Block() for i in range(3)]
-grassTile1 = [Platform() for i in range(21)]
-coins = [Coin() for i in range(4)]
-goombas = [Goomba() for i in range(2)]
-troopas = [Troopa() for i in range(2)]
-boos = [Boo() for i in range(2)]
-goombas[0].x, goombas[0].y = 400, 500
-troopas[0].x, troopas[0].y = 400, 400
-boos[0].x , boos[0].y = 400,400
-for ib in itemBlock:
-    ib.x, ib.y = 100, 180
-    ib.case = 1
-itemBlock[0].x, itemBlock[0].y = 200, 150;
-items[0].case = 0
-itemBlock[1].x, itemBlock[1].y = 380, 250;
-items[1].case = 1
-for i in range(3):
-    normalBlock[i].x, normalBlock[i].y = 350 + i * 30, 150
-
-for i in range(0, 20 + 1):
-    grassTile1[i].case = 0
-    grassTile1[i].x, grassTile1[i].y = 30 * i, 50
-
-for i in range(0, 4):
-    coins[i].x, coins[i].y = i * 30 + 340, 80
-
-while running:
-
-    game_loop()
-
-    game_draw()
+#open_canvas()
 
 
-    delay(0.05)
-    pass
+# while running:
+#
+#     game_loop()
+#
+#     game_draw()
+#
+#
+#     delay(0.05)
+#     pass
 
 
 #소멸자
