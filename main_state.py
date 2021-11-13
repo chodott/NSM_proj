@@ -76,7 +76,6 @@ def exit():
 
 
 def update():
-    handle_events()
     for game_object in game_world.all_objects():
         game_object.update()
     check_Collision()
@@ -97,31 +96,30 @@ def update():
 
 
 def handle_events():
-    global player
     events = get_events()
     for event in events:
         if event.type == SDL_QUIT:
             quit()
-        elif event.type == SDL_KEYDOWN and event.key == SDLK_UP and player.onAir == 0:
-            player.jumping = 1
         elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
             quit()
-        elif event.type == SDL_KEYDOWN and event.key == SDLK_LEFT:
-            player.running = 1
-            player.dir -= 1
-            player.idle_dir = -1
-        elif event.type == SDL_KEYDOWN and event.key == SDLK_RIGHT:
-            player.running = 1
-            player.dir += 1
-            player.idle_dir = 1
-        elif event.type == SDL_KEYUP and event.key == SDLK_LEFT:
-            player.dir += 1
-        elif event.type == SDL_KEYUP and event.key == SDLK_RIGHT:
-            player.dir -= 1
-        elif event.type == SDL_KEYDOWN and event.key == SDLK_SPACE and player.power == 2:
-            player.attack = 1
+        else: player.handle_event(event)
+        # elif event.type == SDL_KEYDOWN and event.key == SDLK_UP and player.onAir == 0:
+        #     player.jumping = 1
+        # elif event.type == SDL_KEYDOWN and event.key == SDLK_LEFT:
+        #     player.running = 1
+        #     player.dir -= 1
+        #     player.idle_dir = -1
+        # elif event.type == SDL_KEYDOWN and event.key == SDLK_RIGHT:
+        #     player.running = 1
+        #     player.dir += 1
+        #     player.idle_dir = 1
+        # elif event.type == SDL_KEYUP and event.key == SDLK_LEFT:
+        #     player.dir += 1
+        # elif event.type == SDL_KEYUP and event.key == SDLK_RIGHT:
+        #     player.dir -= 1
+        # elif event.type == SDL_KEYDOWN and event.key == SDLK_SPACE and player.power == 2:
+        #     player.attack = 1
 
-    pass
 
 
 def check_Collision():
