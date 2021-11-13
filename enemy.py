@@ -4,8 +4,10 @@ from pico2d import *
 
 
 class Goomba:
+    image = None
     def __init__(self):
-        self.image = load_image('goomba.png')
+        if Goomba.image == None:
+            Goomba.image = load_image('goomba.png')
         self.x, self.y = -10,-10
         self.w, self.h = 30,30
         self.dir = -1
@@ -45,8 +47,10 @@ class Goomba:
 
 
 class Troopa:
+    image = None
     def __init__(self):
-        self.image = load_image('troopa.png')
+        if Troopa.image == None:
+            Troopa.image = load_image('troopa.png')
         self.x, self.y = -10, -10
         self.w, self.h = 30, 50
         self.dir = -1
@@ -89,8 +93,10 @@ class Troopa:
 
 
 class Boo:
+    image = None
     def __init__(self):
-        self.image = load_image('ghost.png')
+        if Boo.image == None:
+            Boo.image = load_image('ghost.png')
         self.x, self.y = -10, -10
         self.w, self.h = 30, 30
         self.dir = -1

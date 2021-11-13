@@ -15,8 +15,13 @@ def enter():
     global coins, items
     global goombas, troopas, boos
 
+    #배경
     background = Background()
+    game_world.add_object(background, 0)
+    #마리오
     player = Player()
+    game_world.add_object(player, 1)
+    #아이템
     items = [Item() for i in range(2)]
     itemBlock = [Block() for i in range(2)]
     normalBlock = [Block() for i in range(3)]
@@ -33,8 +38,8 @@ def enter():
 
 def draw():
     clear_canvas()
-    background.draw()
-    player.draw()
+    for game_object in game_world.all_objects():
+        game_object.draw()
     for i in range(2):
         items[i].draw()
     for i in range(0, 20 + 1):
@@ -66,12 +71,14 @@ def exit():
     del(itemBlock); del(normalBlock); del(grassTile1)
     del(coins); del(items)
     del(goombas); del(troopas); del(boos)
+    game_world.clear()
     pass
 
 
 def update():
     handle_events()
-    player.move()
+    for game_object in game_world.all_objects():
+        game_object.update()
     check_Collision()
     for item in items:
         item.update()

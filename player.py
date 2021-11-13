@@ -1,8 +1,13 @@
 # 파이어볼 곡선이동, 충돌처리, 탄환추가, 파워가 변해도 유지 추가 필요
 
-
 from pico2d import *
+import game_world
 
+PIXEL_PER_METER = (10.0 / 0.3)
+RUN_SPEED_KMPH = 20.0
+RUN_SPEED_MPM = (RUN_SPEED_KMPH * 1000.0 / 60.0)
+RUN_SPEED_MPS = (RUN_SPEED_MPM / 60.0)
+RUN_SPEED_PPS = (RUN_SPEED_MPS * PIXEL_PER_METER)
 
 class Player:
     def __init__(self):
@@ -110,7 +115,7 @@ class Player:
 
             pass
 
-    def move(self):
+    def update(self):
         if self.power != 0: self.h = 60
         else: self.h = 30
         # 점프
@@ -161,8 +166,10 @@ class Player:
 
 
 class FireBall:
+    image = None
     def __init__(self):
-        self.image = load_image('fireball.png')
+        if FireBall.image == None:
+            self.image = load_image('fireball.png')
         self.x, self.y = -100, -100
         self.dir = 0
         self.speed = 10

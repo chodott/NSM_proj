@@ -3,8 +3,10 @@ from random import *
 
 
 class Block:
+    image = None
     def __init__(self):
-        self.image = load_image('block30.png')
+        if Block.image == None:
+            Block.image = load_image('block30.png')
         self.x, self.y = 200, 150
         self.frame = 0
         self.broke = 0
@@ -41,9 +43,11 @@ class Block:
 
 
 class Platform:
+    image = None
     def __init__(self):
         self.x, self.y = 50, 50
-        self.image = load_image('tiles.png')
+        if Platform.image == None:
+            Platform.image = load_image('tiles.png')
         self.case = 0
 
     def draw(self):
@@ -54,9 +58,11 @@ class Platform:
 
 
 class Item:
+    image = None
     def __init__(self):
         self.x, self.y = -10, -10
-        self.image = load_image('Item.png')
+        if Item.image == None:
+            Item.image = load_image('Item.png')
         self.case = 0
         self.direction = -1
         self.onAir = 1
@@ -82,9 +88,11 @@ class Item:
 
 
 class Coin:
+    image = None
     def __init__(self):
         self.x, self.y = -1, -1
-        self.image = load_image('coin.png')
+        if Coin.image == None:
+            Coin.image = load_image('coin.png')
         self.frame = 0
 
     def draw(self):
@@ -100,12 +108,17 @@ class Coin:
 
 
 class Background:
+    image = None
     def __init__(self):
         self.x, self.y = 400, 300
-        self.image = load_image('bg-grassland.png')
+        if Background.image == None:
+            Background.image = load_image('bg-grassland.png')
 
     def draw(self):
         self.image.draw(self.x, self.y)
 
-    pass
+    def update(self):
+        self.x, self.y = 400, 300
+        pass
+
 
