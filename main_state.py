@@ -3,6 +3,7 @@ from object import *
 from enemy import *
 from pico2d import *
 from random import *
+from UI import *
 from game_framework import *
 
 
@@ -14,7 +15,9 @@ def enter():
     global itemBlock, normalBlock, grassTile1
     global coins, items
     global goombas, troopas, boos
-
+    global ui
+    #UI
+    ui = UI(name)
     #배경
     background = Background()
     game_world.add_object(background, 0)
@@ -56,7 +59,7 @@ def draw():
         troopa.draw()
     for boo in boos:
         boo.draw()
-
+    ui.draw()
     update_canvas()
 
     pass
@@ -67,10 +70,12 @@ def exit():
     global itemBlock, normalBlock, grassTile1
     global coins, items
     global goombas, troopas, boos
+    global ui
     del(background); del(player)
     del(itemBlock); del(normalBlock); del(grassTile1)
     del(coins); del(items)
     del(goombas); del(troopas); del(boos)
+    del(ui)
     game_world.clear()
     pass
 
@@ -93,6 +98,7 @@ def update():
         troopa.update()
     for boo in boos:
         boo.update(player.x,player.y,player.dir,player.idle_dir)
+    ui.update()
 
 
 def handle_events():
@@ -132,6 +138,7 @@ def check_Collision():
     global goombas
     global troopas
     global boos
+    global ui
     airCheck = 1
     # 아이템 블록과 충돌
     for ib in itemBlock:
@@ -226,7 +233,8 @@ def check_Collision():
     #코인 충돌
     for coin in coins:
          if player.x - 15 < coin.x+15 and player.x + 15 > coin.x - 15 and player.y + player.h/2 > coin.y > player.y - player.h/2:
-             coin.x, coin.y = -10, -10
+            coin.x, coin.y = -10, -10
+            ui.coin += 1
 
     #적, 아이템, 아이템 블록 충돌
     for ib in itemBlock:
@@ -294,17 +302,26 @@ def check_Collision():
 
         # 점프 충돌
         if troopa.y + troopa.h / 2 > player.y - player.h / 2 - 10 > troopa.y \
-                and (troopa.x - troopa.w / 2 < player.x - player.w / 2 < troopa.x + troopa.w / 2 or troopa.x - troopa.w / 2 < player.x + player.w / 2 < troopa.x + troopa.h / 2) \
-                and troopa.condition > 0:
-            troopa.condition -= 1
-            if troopa.condition == 0: troopa.speed = 0
+                and (troopa.x - troopa.w / 2 < player.x - player.w / 2 < troopa.x + troopa.w / 2 or troopa.x - troopa.w / 2 < player.x + player.w / 2 < troopa.x + troopa.h / 2):
+            if troopa.condition > 0: troopa.condition -= 1
+            if troopa.condition == 0:
+                if troopa.speed == 0:
+                    if troopa.x < player.x: troopa.speed = -5
+                    else: troopa.speed = 5
+                else: troopa.speed = 0
 
         # 정면 충돌
         if (troopa.x - troopa.w / 2 < player.x + player.w / 2 < troopa.x + troopa.w / 2 or troopa.x - troopa.w / 2 < player.x - player.w / 2 < troopa.x + troopa.w / 2) \
                 and player.y + player.h / 2 > troopa.y + troopa.h / 2 > player.y - player.h / 2:
-            if player.hitTimer == 0:
-                player.power -= 1
-                player.hitTimer = 400
+            if troopa.speed == 0:
+                if troopa.x < player.x:
+                    troopa.speed = -5
+                else:
+                    troopa.speed = 5
+            else:
+                if player.hitTimer == 0:
+                    player.power -= 1
+                    player.hitTimer = 400
 
         #파이어볼 충돌
         elif (troopa.y - troopa.h/2 < player.fb.y - 10 < troopa.y + troopa.h/2 or troopa.y - troopa.h/2 < player.fb.y + 10 < troopa.y + troopa.h/2)\
@@ -353,8 +370,6 @@ def initialize():
 
 
 # 초기화
-
-havecoin = 0 #먹은 코인
 
 #open_canvas()
 

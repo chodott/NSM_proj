@@ -12,7 +12,7 @@ class Goomba:
         self.w, self.h = 30,30
         self.dir = -1
         self.speed = -3
-        self.frame = 1
+        self.frame =  1
         self.condition = 0 #1: 죽음 0: 생존 -1: 죽음(불)
         self.deathcnt = 0
 
