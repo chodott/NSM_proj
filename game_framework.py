@@ -12,6 +12,7 @@ class GameState:
 
 running = None
 stack = None
+Life = 3
 
 def change_state(state):
     global stack

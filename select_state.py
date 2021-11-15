@@ -1,6 +1,6 @@
 from pico2d import *
 import game_framework
-import main_state
+import load_state
 from UI import *
 
 name = "SelectState"
@@ -74,7 +74,7 @@ def handle_events():
         elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_ESCAPE):
             game_framework.quit()
         elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_SPACE):
-            game_framework.change_state(main_state)
+            game_framework.change_state(load_state)
         elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_RIGHT):
             if select.pos < 4: select.pos += 1
         elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_LEFT):

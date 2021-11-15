@@ -4,7 +4,9 @@ from enemy import *
 from pico2d import *
 from random import *
 from UI import *
-from game_framework import *
+import game_framework
+import load_state
+import over_state
 
 
 name = "MainState"
@@ -81,6 +83,9 @@ def exit():
 
 
 def update():
+    global Life
+    global player
+    #global ui
     for game_object in game_world.all_objects():
         game_object.update()
     check_Collision()
@@ -99,7 +104,12 @@ def update():
     for boo in boos:
         boo.update(player.x,player.y,player.dir,player.idle_dir)
     ui.update()
-
+    if player.power == -1 or ui.alarm == 0:
+        #데스 애니메이션 출력
+        UI.Life -= 1
+        if UI.Life == -1:
+            game_framework.change_state(over_state)
+        else: game_framework.change_state(load_state)
 
 def handle_events():
     events = get_events()
