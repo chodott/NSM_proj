@@ -2,7 +2,6 @@ from player import *
 from object import *
 from enemy import *
 from pico2d import *
-from random import *
 from UI import *
 import game_framework
 import load_state
@@ -11,10 +10,31 @@ import over_state
 
 name = "MainState"
 
+player = None
+items = []
+ibs = []
+nbs = []
+grassTile1 =[]
+coins = []
+goombas = []
+troopas = []
+boos = []
+
+
+def collide(a, b):
+    left_a, bottom_a, right_a, top_a = a.get_bb()
+    left_b, bottom_b, right_b, top_b = b.get_bb()
+    if left_a > right_b: return False
+    if right_a < left_b: return False
+    if top_a < bottom_b: return False
+    if bottom_a > top_b: return False
+
+    return True
+
 
 def enter():
     global background, player
-    global itemBlock, normalBlock, grassTile1
+    global ibs, nbs, grassTile1
     global coins, items
     global goombas, troopas, boos
     global ui
@@ -27,14 +47,26 @@ def enter():
     player = Player()
     game_world.add_object(player, 1)
     #아이템
-    items = [Item() for i in range(2)]
-    itemBlock = [Block() for i in range(2)]
-    normalBlock = [Block() for i in range(3)]
+    items = [Item() for i in range(5)]
+    game_world.add_objects(items,1)
+    #블럭
+    ibs = [Block() for i in range(2)]
+    nbs = [Block() for i in range(3)]
+    game_world.add_objects(ibs, 1)
+    game_world.add_objects(nbs, 1)
+    #플랫폼
     grassTile1 = [Platform() for i in range(21)]
+    game_world.add_objects(grassTile1,1)
+    #코인
     coins = [Coin() for i in range(4)]
+    game_world.add_objects(coins, 1)
+    #적
     goombas = [Goomba() for i in range(2)]
     troopas = [Troopa() for i in range(2)]
     boos = [Boo() for i in range(2)]
+    game_world.add_objects(goombas, 1)
+    game_world.add_objects(troopas, 1)
+    #game_world.add_objects(boos, 1)
 
     initialize()
 
@@ -45,20 +77,6 @@ def draw():
     clear_canvas()
     for game_object in game_world.all_objects():
         game_object.draw()
-    for i in range(2):
-        items[i].draw()
-    for i in range(0, 20 + 1):
-        grassTile1[i].draw()
-    for ib in itemBlock:
-        ib.draw()
-    for nb in normalBlock:
-        nb.draw()
-    for coin in coins:
-        coin.draw()
-    for goomba in goombas:
-        goomba.draw()
-    for troopa in troopas:
-        troopa.draw()
     for boo in boos:
         boo.draw()
     ui.draw()
@@ -68,15 +86,9 @@ def draw():
 
 
 def exit():
-    global background, player
-    global itemBlock, normalBlock, grassTile1
-    global coins, items
-    global goombas, troopas, boos
+    global boos
     global ui
-    del(background); del(player)
-    del(itemBlock); del(normalBlock); del(grassTile1)
-    del(coins); del(items)
-    del(goombas); del(troopas); del(boos)
+    del(boos)
     del(ui)
     game_world.clear()
     pass
@@ -84,33 +96,96 @@ def exit():
 
 def update():
     global Life
-    global player
-    #global ui
+    global boos
+    global ui
     for game_object in game_world.all_objects():
         game_object.update()
-    check_Collision()
-    for item in items:
-        item.update()
-    for coin in coins:
-        coin.update()
-    for ib in itemBlock:
-        ib.update()
-    for i in range(3):
-        normalBlock[i].update()
-    for goomba in goombas:
-        goomba.update()
-    for troopa in troopas:
-        troopa.update()
     for boo in boos:
-        boo.update(player.x,player.y,player.dir,player.idle_dir)
+        boo.update(player.x, player.y, player.dir, player.idle_dir)
     ui.update()
-    #if player.power == -1 or ui.alarm == 0:
-    if player.power == -1:
+    if player.power == -1 or ui.alarm == 0:
         #데스 애니메이션 출력
         UI.Life -= 1
         if UI.Life == -1:
             game_framework.change_state(over_state)
         else: game_framework.change_state(load_state)
+
+    player.gravity = 1
+
+    #플랫폼 충돌 체크
+    for grass in grassTile1:
+        if collide(grass,player):
+            player.stop()
+        for goomba in goombas:
+            if collide(grass, goomba):
+                goomba.stop()
+        for troopa in troopas:
+            if collide(grass, troopa):
+                troopa.stop()
+        for item in items:
+            if collide(grass, item):
+                item.stop()
+
+    #블록 충돌 체크
+    for ib in ibs:
+        if collide(ib, player):
+            if player.y - player.h / 2 >= ib.y + 10:
+                player.stop()
+            elif player.y + player.h/2 <= ib.y - 10:
+                ib.broke = 1
+            else: player.speed = 0
+
+    for nb in nbs:
+        if collide(nb, player):
+            if player.y - player.h / 2 >= nb.y + 10:
+                player.stop()
+            elif player.y + player.h/2 <= nb.y - 10:
+                nb.broke = 1
+            else:
+                player.speed = 0
+
+    #플레이어 적 충돌
+    for troopa in troopas:
+        if collide(player, troopa):
+            if player.y - player.h / 2 >= troopa.y + 10:
+                player.attack()
+                troopa.hit(player.x)
+            else:
+                if troopa.speed == 0: troopa.hit(player.x)
+                else: player.hit()
+
+    for goomba in goombas:
+        if collide(player, goomba):
+            if player.y - player.h/2 >= goomba.y + 10:
+                player.attack()
+                goomba.hit(0)
+            elif goomba.condition == 0:
+                player.hit()
+    if player.power == -1:
+        game_world.remove_object(player)
+        #player.remove(player)
+    # for boo in boos:
+    #     if collide(player, boo):
+    #         player.hit()
+    #         if player.power == -1:
+    #             game_world.remove_object(player)
+
+    #코인 충돌
+    for coin in coins:
+        if collide(player,coin):
+            coins.remove(coin)
+            game_world.remove_object(coin)
+            ui.coin += 1
+
+    #아이템 충돌
+    for item in items:
+        if collide(player,item):
+            player.upgrade(item.case)
+            items.remove(item)
+            game_world.remove_object(item)
+
+
+
 
 def handle_events():
     events = get_events()
@@ -120,39 +195,22 @@ def handle_events():
         elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
             quit()
         else: player.handle_event(event)
-        # elif event.type == SDL_KEYDOWN and event.key == SDLK_UP and player.onAir == 0:
-        #     player.jumping = 1
-        # elif event.type == SDL_KEYDOWN and event.key == SDLK_LEFT:
-        #     player.running = 1
-        #     player.dir -= 1
-        #     player.idle_dir = -1
-        # elif event.type == SDL_KEYDOWN and event.key == SDLK_RIGHT:
-        #     player.running = 1
-        #     player.dir += 1
-        #     player.idle_dir = 1
-        # elif event.type == SDL_KEYUP and event.key == SDLK_LEFT:
-        #     player.dir += 1
-        # elif event.type == SDL_KEYUP and event.key == SDLK_RIGHT:
-        #     player.dir -= 1
-        # elif event.type == SDL_KEYDOWN and event.key == SDLK_SPACE and player.power == 2:
-        #     player.attack = 1
 
 
 
 def check_Collision():
     global player
-    global itemBlock
+    global ibs
     global grassTile1
     global coins
     global items
-    global itemBlock
     global goombas
     global troopas
     global boos
     global ui
     airCheck = 1
     # 아이템 블록과 충돌
-    for ib in itemBlock:
+    for ib in ibs:
         # 착지 블록 충돌
         if ib.y + 12 > player.y - player.h / 2 > ib.y and player.x + 15 > ib.x - 15 and player.x - 15 < ib.x + 15:
             player.jumping = 0
@@ -184,7 +242,7 @@ def check_Collision():
             break
 
     # 노말 블록 충돌
-    for block in normalBlock:
+    for block in nbs:
         # 옆에서 진입 시 충돌
         if block.x + 15 > player.x + player.speed > block.x - 15 and player.y+30 > block.y+15 and player.y-30 < block.y - 15:
             if player.speed > 0:
@@ -225,8 +283,8 @@ def check_Collision():
             break
 
         #파이어볼, 플랫폼
-        if tile.y + 15 > player.fb.y - 10 > tile.y and player.fb.x + 10 > tile.x - 15 and player.fb.x - 10 < tile.x + 15:
-            player.fb.bounce = 1
+        #if tile.y + 15 > player.fb.y - 10 > tile.y and player.fb.x + 10 > tile.x - 15 and player.fb.x - 10 < tile.x + 15:
+        #    player.fb.bounce = 1
 
     if airCheck == 1: player.onAir = 1
 
@@ -248,7 +306,7 @@ def check_Collision():
             ui.coin += 1
 
     #적, 아이템, 아이템 블록 충돌
-    for ib in itemBlock:
+    for ib in ibs:
         # 착지 블록 충돌
         for item in items:
             if ib.y + 12 > item.y - 15 > ib.y and item.x + 15 > ib.x - 15 and item.x - 15 < ib.x + 15:
@@ -261,7 +319,7 @@ def check_Collision():
                 break
 
     #적, 아이템, 노말 블록 충돌
-    for block in normalBlock:
+    for block in nbs:
         for j in range(2):
             # 옆에서 진입 시 충돌
             if block.x + 15 > items[j].x + 2 > block.x - 15 and items[j].y + 30 > block.y + 15 and items[j].y - 30 < block.y - 15:
@@ -362,15 +420,15 @@ def initialize():
     goombas[0].x, goombas[0].y = 400, 500
     troopas[0].x, troopas[0].y = 400, 400
     boos[0].x, boos[0].y = 400, 400
-    for ib in itemBlock:
+    for ib in ibs:
         ib.x, ib.y = 100, 180
         ib.case = 1
-    itemBlock[0].x, itemBlock[0].y = 200, 150;
+    ibs[0].x, ibs[0].y = 200, 150;
     items[0].case = 0
-    itemBlock[1].x, itemBlock[1].y = 380, 250;
+    ibs[1].x, ibs[1].y = 380, 250;
     items[1].case = 1
     for i in range(3):
-        normalBlock[i].x, normalBlock[i].y = 350 + i * 30, 150
+        nbs[i].x, nbs[i].y = 350 + i * 30, 150
 
     for i in range(0, 20 + 1):
         grassTile1[i].case = 0
@@ -379,21 +437,3 @@ def initialize():
     for i in range(0, 4):
         coins[i].x, coins[i].y = i * 30 + 340, 80
 
-
-# 초기화
-
-#open_canvas()
-
-
-# while running:
-#
-#     game_loop()
-#
-#     game_draw()
-#
-#
-#     delay(0.05)
-#     pass
-
-
-#소멸자

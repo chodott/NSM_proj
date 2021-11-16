@@ -9,7 +9,7 @@ def add_object(o, layer):
 
 
 def add_objects(l, layer):
-    objects[layer] += 1
+    objects[layer] += l
 
 
 def remove_object(o):

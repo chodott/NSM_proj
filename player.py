@@ -28,7 +28,7 @@ BALL_SPEED_PPS = (BALL_SPEED_MPS * PIXEL_PER_METER)
 # Action Speed
 TIME_PER_ACTION = 0.5
 ACTION_PER_TIME = 1.0 / TIME_PER_ACTION
-FRAMES_PER_ACTION = 8
+FRAMES_PER_ACTION = 4
 
 #Boy Event
 RIGHT_DOWN, LEFT_DOWN, RIGHT_UP, LEFT_UP, UP_DOWN, UP_UP, SPACE = range(7)
@@ -47,17 +47,17 @@ class IdleState:
         if event == RIGHT_DOWN:
             player.dir += 1
             player.idle_dir = 1
-            player.speed += RUN_SPEED_PPS
+            #player.speed += RUN_SPEED_PPS
         elif event == LEFT_DOWN:
             player.dir -= 1
             player.idle_dir = -1
-            player.speed -= RUN_SPEED_PPS
+            #player.speed -= RUN_SPEED_PPS
         elif event == RIGHT_UP:
             player.dir -= 1
-            player.speed -= RUN_SPEED_PPS
+            #player.speed -= RUN_SPEED_PPS
         elif event == LEFT_UP:
             player.dir += 1
-            player.speed += RUN_SPEED_PPS
+            #layer.speed += RUN_SPEED_PPS
 
     def exit(player, event):
         if event == SPACE:
@@ -65,11 +65,9 @@ class IdleState:
         pass
 
     def do(player):
-        player.frame = (player.frame+1) % 4
-        if player.speed < 0: player.speed += 1
-        elif player.speed > 0: player.speed -= 1
-        player.x += player.speed * game_framework.frame_time
-        player.y -= GRAVITY_SPEED_PPS * game_framework.frame_time
+        player.speed = RUN_SPEED_PPS * game_framework.frame_time * player.dir
+        player.x += player.speed
+        player.y -= player.gravity
 
     def draw(player):
         if player.power == 0:
@@ -88,17 +86,17 @@ class RunState:
         if event == RIGHT_DOWN:
             player.dir += 1
             player.idle_dir = 1
-            player.speed += RUN_SPEED_PPS
+            #player.speed += RUN_SPEED_PPS
         elif event == LEFT_DOWN:
             player.dir -= 1
             player.idle_dir = -1
-            player.speed -= RUN_SPEED_PPS
+            #player.speed -= RUN_SPEED_PPS
         elif event == RIGHT_UP:
             player.dir -= 1
-            player.speed -= RUN_SPEED_PPS
+            #player.speed -= RUN_SPEED_PPS
         elif event == LEFT_UP:
             player.dir += 1
-            player.speed += RUN_SPEED_PPS
+            #player.speed += RUN_SPEED_PPS
 
     def exit(player, event):
         if event == SPACE:
@@ -107,11 +105,10 @@ class RunState:
 
     def do(player):
         player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 4
-        if player.dir == -1 and player.speed > - 10: player.speed -= 1
-        elif player.dir == 1 and player.speed < 10: player.speed += 1
-        player.x += player.speed * game_framework.frame_time
+        player.speed = RUN_SPEED_PPS * game_framework.frame_time * player.dir
+        player.x += player.speed
         player.x = clamp(15, player.x , 1600-25)
-        player.y -= GRAVITY_SPEED_PPS * game_framework.frame_time
+        player.y -= player.gravity
 
     def draw(player):
         if player.power == 0:
@@ -161,8 +158,8 @@ class JumpState:
         elif player.maxjump < 2000:
             player.maxjump += 10
             player.y += JUMP_SPEED_PPS * game_framework.frame_time
-        player.x += player.speed * game_framework.frame_time
-        player.y -= GRAVITY_SPEED_PPS * game_framework.frame_time
+        player.x += player.speed
+        player.y -= player.gravity
 
 
 next_state_table = {
@@ -182,25 +179,50 @@ next_state_table = {
 
 
 class Player:
+    speed = 0
+    x = 50
+    y = 200
     def __init__(self):
         self.image = load_image('mini30.png')
-        self.x, self.y = (50,200)
         self.w, self.h = 30, 30
         self.power = 0
-        self.speed = 0
         self.frame = 0
         self.idle_dir = 1
         self.dir = 0  # -1 left +1 right
         self.jumping = 0
-        self.jumpcnt = 0
         self.maxjump = 0
+        self.gravity = 0
         self.onAir = 1
         self.hitTimer = 0
-        self.attack = 0
-        self.fb = FireBall()
         self.event_que = []
         self.cur_state = IdleState
         self.cur_state.enter(self,None)
+
+    def get_bb(self):
+        if self.power == 0:
+            return self.x-15, self.y - 15, self.x + 15, self.y + 15
+        elif self.power == 1 or self.power == 2:
+            return self.x - 15, self.y - 30, self.x + 15, self.y + 30
+        else:
+            return 0,0,0,0
+
+    def stop(self):
+        self.gravity = 0
+        self.onAir = 0
+
+    def attack(self):
+        self.y += 50
+
+    def hit(self):
+        self.power -= 1
+        self.hitTimer = 1000
+
+    def upgrade(self, type):
+        if type == 0:
+            self.power = 1
+        elif type == 1:
+            self.power = 2
+        
 
     def draw(self):
         self.cur_state.draw(self)
