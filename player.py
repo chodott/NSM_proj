@@ -2,12 +2,28 @@
 
 from pico2d import *
 import game_world
+import game_framework
 
 PIXEL_PER_METER = (10.0 / 0.3)
 RUN_SPEED_KMPH = 20.0
 RUN_SPEED_MPM = (RUN_SPEED_KMPH * 1000.0 / 60.0)
 RUN_SPEED_MPS = (RUN_SPEED_MPM / 60.0)
 RUN_SPEED_PPS = (RUN_SPEED_MPS * PIXEL_PER_METER)
+
+JUMP_SPEED_KMPH = 60.0
+JUMP_SPEED_MPM = (JUMP_SPEED_KMPH * 1000.0 / 60.0)
+JUMP_SPEED_MPS = (JUMP_SPEED_MPM / 60.0)
+JUMP_SPEED_PPS = (JUMP_SPEED_MPS * PIXEL_PER_METER)
+
+GRAVITY_SPEED_KMPH = 30.0
+GRAVITY_SPEED_MPM = (GRAVITY_SPEED_KMPH * 1000.0 / 60.0)
+GRAVITY_SPEED_MPS = (GRAVITY_SPEED_MPM / 60.0)
+GRAVITY_SPEED_PPS = (GRAVITY_SPEED_MPS * PIXEL_PER_METER)
+
+BALL_SPEED_KMPH = 20.0
+BALL_SPEED_MPM = (BALL_SPEED_KMPH * 1000.0 / 60.0)
+BALL_SPEED_MPS = (BALL_SPEED_MPM / 60.0)
+BALL_SPEED_PPS = (BALL_SPEED_MPS * PIXEL_PER_METER)
 
 # Action Speed
 TIME_PER_ACTION = 0.5
@@ -31,14 +47,17 @@ class IdleState:
         if event == RIGHT_DOWN:
             player.dir += 1
             player.idle_dir = 1
+            player.speed += RUN_SPEED_PPS
         elif event == LEFT_DOWN:
             player.dir -= 1
             player.idle_dir = -1
+            player.speed -= RUN_SPEED_PPS
         elif event == RIGHT_UP:
             player.dir -= 1
+            player.speed -= RUN_SPEED_PPS
         elif event == LEFT_UP:
             player.dir += 1
-        player.runcnt = 0
+            player.speed += RUN_SPEED_PPS
 
     def exit(player, event):
         if event == SPACE:
@@ -49,8 +68,8 @@ class IdleState:
         player.frame = (player.frame+1) % 4
         if player.speed < 0: player.speed += 1
         elif player.speed > 0: player.speed -= 1
-        player.x += player.speed
-        player.y -= 5
+        player.x += player.speed * game_framework.frame_time
+        player.y -= GRAVITY_SPEED_PPS * game_framework.frame_time
 
     def draw(player):
         if player.power == 0:
@@ -69,13 +88,17 @@ class RunState:
         if event == RIGHT_DOWN:
             player.dir += 1
             player.idle_dir = 1
+            player.speed += RUN_SPEED_PPS
         elif event == LEFT_DOWN:
             player.dir -= 1
             player.idle_dir = -1
+            player.speed -= RUN_SPEED_PPS
         elif event == RIGHT_UP:
             player.dir -= 1
+            player.speed -= RUN_SPEED_PPS
         elif event == LEFT_UP:
             player.dir += 1
+            player.speed += RUN_SPEED_PPS
 
     def exit(player, event):
         if event == SPACE:
@@ -83,22 +106,23 @@ class RunState:
         pass
 
     def do(player):
-        player.frame = (player.frame + 1) % 4
+        player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 4
         if player.dir == -1 and player.speed > - 10: player.speed -= 1
         elif player.dir == 1 and player.speed < 10: player.speed += 1
-        player.x += player.speed
-        player.y -= 5
+        player.x += player.speed * game_framework.frame_time
+        player.x = clamp(15, player.x , 1600-25)
+        player.y -= GRAVITY_SPEED_PPS * game_framework.frame_time
 
     def draw(player):
         if player.power == 0:
-            if player.dir == 1: player.image.clip_draw(180+30*player.frame, 60, player.w, player.h, player.x, player.y)
-            elif player.dir == -1: player.image.clip_draw(30*player.frame, 60, player.w, player.h, player.x, player.y)
+            if player.dir == 1: player.image.clip_draw(180+30*(int)(player.frame), 60, player.w, player.h, player.x, player.y)
+            elif player.dir == -1: player.image.clip_draw(30*(int)(player.frame), 60, player.w, player.h, player.x, player.y)
         elif player.power == 1:
-            if player.idle_dir == 1: player.image.clip_draw(30 * player.frame, 600-120, player.w, player.h, player.x, player.y)
-            elif player.idle_dir == -1: player.image.clip_draw(270 - 30*player.frame, 600-120, player.w, player.h, player.x, player.y)
+            if player.idle_dir == 1: player.image.clip_draw(30 * (int)(player.frame), 600-120, player.w, player.h, player.x, player.y)
+            elif player.idle_dir == -1: player.image.clip_draw(270 - 30*(int)(player.frame), 600-120, player.w, player.h, player.x, player.y)
         elif player.power == 2:
-            if player.idle_dir == 1: player.image.clip_draw(30 * player.frame, 600 - 240, player.w, player.h, player.x, player.y)
-            elif player.idle_dir == -1: player.image.clip_draw(270 - 30 * player.frame, 600 - 240, player.w, player.h, player.x, player.y)
+            if player.idle_dir == 1: player.image.clip_draw(30 * (int)(player.frame), 600 - 240, player.w, player.h, player.x, player.y)
+            elif player.idle_dir == -1: player.image.clip_draw(270 - 30 * (int)(player.frame), 600 - 240, player.w, player.h, player.x, player.y)
 
 class JumpState:
     def enter(player, event):
@@ -120,25 +144,25 @@ class JumpState:
 
     def draw(player):
         if player.power == 0:
-            if player.dir == 1: player.image.clip_draw(180+30*player.frame, 60, player.w, player.h, player.x, player.y)
-            elif player.dir == -1: player.image.clip_draw(30*player.frame, 60, player.w, player.h, player.x, player.y)
+            if player.dir == 1: player.image.clip_draw(180+30*(int)(player.frame), 60, player.w, player.h, player.x, player.y)
+            elif player.dir == -1: player.image.clip_draw(30*(int)(player.frame), 60, player.w, player.h, player.x, player.y)
         elif player.power == 1:
-            if player.idle_dir == 1: player.image.clip_draw(30 * player.frame, 600-120, player.w, player.h, player.x, player.y)
-            elif player.idle_dir == -1: player.image.clip_draw(270 - 30*player.frame, 600-120, player.w, player.h, player.x, player.y)
+            if player.idle_dir == 1: player.image.clip_draw(30 * (int)(player.frame), 600-120, player.w, player.h, player.x, player.y)
+            elif player.idle_dir == -1: player.image.clip_draw(270 - 30*(int)(player.frame), 600-120, player.w, player.h, player.x, player.y)
         elif player.power == 2:
-            if player.idle_dir == 1: player.image.clip_draw(30 * player.frame, 600 - 240, player.w, player.h, player.x, player.y)
-            elif player.idle_dir == -1: player.image.clip_draw(270 - 30 * player.frame, 600 - 240, player.w, player.h, player.x, player.y)
+            if player.idle_dir == 1: player.image.clip_draw(30 * (int)(player.frame), 600 - 240, player.w, player.h, player.x, player.y)
+            elif player.idle_dir == -1: player.image.clip_draw(270 - 30 * (int)(player.frame), 600 - 240, player.w, player.h, player.x, player.y)
 
     def do(player):
         if player.onAir == 0:
-            player.maxjump = 10
-            player.y += 15
+            player.maxjump = 300
+            player.y += JUMP_SPEED_PPS * game_framework.frame_time
             player.onAir = 1
-        elif player.maxjump < 100:
+        elif player.maxjump < 2000:
             player.maxjump += 10
-            player.y += 15
-        player.x += player.speed
-        player.y -= 5
+            player.y += JUMP_SPEED_PPS * game_framework.frame_time
+        player.x += player.speed * game_framework.frame_time
+        player.y -= GRAVITY_SPEED_PPS * game_framework.frame_time
 
 
 next_state_table = {

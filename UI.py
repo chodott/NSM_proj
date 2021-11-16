@@ -1,4 +1,5 @@
 from pico2d import *
+import time
 
 class UI:
     image = None
@@ -10,11 +11,12 @@ class UI:
         self.coin = 0
         self.alarm = 400
         self.pos = name
+        self.time = time.time()
 
     def update(self):
         self.value = UI.Life
-        if self.alarm > 0:
-            self.alarm -= 1
+        if self.alarm > 0 and self.pos == "MainState":
+            self.alarm = 400 - (int)(time.time()-self.time)
 
     def draw(self):
         #life 출력
