@@ -1,6 +1,7 @@
 from pico2d import *
 import game_framework
 import main_state
+from time import *
 from UI import *
 
 name = "LoadState"
@@ -12,7 +13,7 @@ def enter():
     global loadTimer
     image = load_image('load.png')
     ui = UI(name)
-    loadTimer = 50
+    loadTimer = time.time()
     pass
 
 
@@ -26,8 +27,7 @@ def update():
     global loadTimer
     global ui
     ui.update()
-    loadTimer -= 1
-    if loadTimer == 0:
+    if time.time() - loadTimer > 1:
         game_framework.change_state(main_state)
     pass
 

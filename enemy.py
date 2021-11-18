@@ -2,8 +2,8 @@
 
 from pico2d import *
 from time import *
+from player import *
 import game_framework
-import player
 
 PIXEL_PER_METER = (10.0 / 0.3)
 RUN_SPEED_KMPH = 10.0
@@ -20,6 +20,7 @@ GRAVITY_SPEED_PPS = (GRAVITY_SPEED_MPS * PIXEL_PER_METER)
 TIME_PER_ACTION = 1.0
 ACTION_PER_TIME = 1.0 / TIME_PER_ACTION
 FRAMES_PER_ACTION = 8
+
 
 
 class Goomba:
@@ -49,14 +50,15 @@ class Goomba:
     def stop(self):
         self.gravity = 0
 
-    def update(self):
+    def update(self, speed):
+        self.x += speed
         if self.condition == 1:
-            if time() - self.deathtime > 1:
+            if time.time() - self.deathtime > 1:
                 self.x, self.y = -10, -10
                 del(self)
 
         elif self.condition == -1:
-            if time() - self.deathtime > 1:
+            if time.time() - self.deathtime > 1:
                 del(self)
             self.y -= self.gravity
         else:
@@ -65,10 +67,10 @@ class Goomba:
             self.x -= self.speed
 
     def hit(self, type):
-        self.deathtime = time()
+        self.deathtime = time.time()
         if type == 0:
             self.condition = 1
-            self.y -= 1
+            self.y -= 15
 
         elif type == 1:
             self.condition = -1
@@ -103,10 +105,12 @@ class Troopa:
     def hit(self, px):
         if self.condition > 0:
             self.condition -= 1
+            self.frame = 0
         if self.condition == 0 and self.speed == 0:
             self.speed = 0.5
             if px > self.x: self.dir = -1
             else: self.dir = 1
+            self.x += self.speed * self.dir * 30
         elif self.condition == 0 and self.speed != 0:
             self.speed = 0
 
@@ -122,8 +126,9 @@ class Troopa:
             self.image.clip_draw(0, 800 - 50 - (int)(self.frame) * 50, self.w, self.h, self.x, self.y);
 
 
-    def update(self):
+    def update(self, speed):
         self.y -= self.gravity
+        self.x += speed
         if self.condition == 0:
             self.x += self.speed * self.dir
             self.h = 30
@@ -172,8 +177,9 @@ class Boo:
         elif self.condition == 1 and self.dir < 0:
             self.image.clip_draw(0, 150 - (int)(self.frame) * 30, self.w, self.h, self.x, self.y);
 
-    def update(self, px, py, pdir, idir):
+    def update(self, px, py, pdir, idir, speed):
         self.frame = (self.frame + + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 3
+        self.x += speed
         if self.x < px: self.dir = 1
         elif self.x > py: self.dir = -1
         #플레이어와 부끄의 방향이 같을 때 부끄 정지
