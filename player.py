@@ -5,6 +5,8 @@ import time
 import game_world
 import game_framework
 
+global fireball
+
 PIXEL_PER_METER = (10.0 / 0.3)
 RUN_SPEED_KMPH = 30.0
 RUN_SPEED_MPM = (RUN_SPEED_KMPH * 1000.0 / 60.0)
@@ -21,7 +23,7 @@ GRAVITY_SPEED_MPM = (GRAVITY_SPEED_KMPH * 1000.0 / 60.0)
 GRAVITY_SPEED_MPS = (GRAVITY_SPEED_MPM / 60.0)
 GRAVITY_SPEED_PPS = (GRAVITY_SPEED_MPS * PIXEL_PER_METER)
 
-BALL_SPEED_KMPH = 20.0
+BALL_SPEED_KMPH = 60.0
 BALL_SPEED_MPM = (BALL_SPEED_KMPH * 1000.0 / 60.0)
 BALL_SPEED_MPS = (BALL_SPEED_MPM / 60.0)
 BALL_SPEED_PPS = (BALL_SPEED_MPS * PIXEL_PER_METER)
@@ -78,15 +80,18 @@ class IdleState:
         if time.time() - player.hitTimer > 2: player.hitTimer = 0
 
     def draw(player):
-        if player.power == 0:
-            if player.idle_dir == 1: player.image.clip_draw(150, 0, player.w, player.h, player.x, player.y)
-            elif player.idle_dir == -1: player.image.clip_draw(0, 0, player.w, player.h, player.x, player.y)
-        elif player.power == 1:
-            if player.idle_dir == 1: player.image.clip_draw(0, 600-60, player.w, player.h, player.x, player.y)
-            elif player.idle_dir == -1: player.image.clip_draw(60, 600-60, player.w, player.h, player.x, player.y)
-        elif player.power == 2:
-            if player.idle_dir == 1: player.image.clip_draw(120, 600 - 240, player.w, player.h, player.x, player.y)
-            elif player.idle_dir == -1: player.image.clip_draw(60, 600 - 180, player.w, player.h, player.x, player.y)
+        if player.hitTimer != 0 and (int)(player.frame) % 2 == 0:
+            player.image.clip_draw(0,0,0,0,player.x,player.y)
+        else:
+            if player.power == 0:
+                if player.idle_dir == 1: player.image.clip_draw(150, 0, player.w, player.h, player.x, player.y)
+                elif player.idle_dir == -1: player.image.clip_draw(0, 0, player.w, player.h, player.x, player.y)
+            elif player.power == 1:
+                if player.idle_dir == 1: player.image.clip_draw(0, 600-60, player.w, player.h, player.x, player.y)
+                elif player.idle_dir == -1: player.image.clip_draw(60, 600-60, player.w, player.h, player.x, player.y)
+            elif player.power == 2:
+                if player.idle_dir == 1: player.image.clip_draw(120, 600 - 240, player.w, player.h, player.x, player.y)
+                elif player.idle_dir == -1: player.image.clip_draw(60, 600 - 180, player.w, player.h, player.x, player.y)
 
 
 class RunState:
@@ -132,15 +137,19 @@ class RunState:
         if time.time() - player.hitTimer > 2: player.hitTimer = 0
 
     def draw(player):
-        if player.power == 0:
-            if player.dir == 1: player.image.clip_draw(180+30*(int)(player.frame), 60, player.w, player.h, player.x, player.y)
-            elif player.dir == -1: player.image.clip_draw(30*(int)(player.frame), 60, player.w, player.h, player.x, player.y)
-        elif player.power == 1:
-            if player.idle_dir == 1: player.image.clip_draw(30 * (int)(player.frame), 600-120, player.w, player.h, player.x, player.y)
-            elif player.idle_dir == -1: player.image.clip_draw(270 - 30*(int)(player.frame), 600-120, player.w, player.h, player.x, player.y)
-        elif player.power == 2:
-            if player.idle_dir == 1: player.image.clip_draw(30 * (int)(player.frame), 600 - 240, player.w, player.h, player.x, player.y)
-            elif player.idle_dir == -1: player.image.clip_draw(270 - 30 * (int)(player.frame), 600 - 240, player.w, player.h, player.x, player.y)
+        if player.hitTimer != 0 and (int)(player.frame) % 2 == 0:
+            player.image.clip_draw(0,0,0,0,player.x,player.y)
+        else:
+            if player.power == 0:
+                if player.dir == 1: player.image.clip_draw(180+30*(int)(player.frame), 60, player.w, player.h, player.x, player.y)
+                elif player.dir == -1: player.image.clip_draw(30*(int)(player.frame), 60, player.w, player.h, player.x, player.y)
+            elif player.power == 1:
+                if player.idle_dir == 1: player.image.clip_draw(30 * (int)(player.frame), 600-120, player.w, player.h, player.x, player.y)
+                elif player.idle_dir == -1: player.image.clip_draw(270 - 30*(int)(player.frame), 600-120, player.w, player.h, player.x, player.y)
+            elif player.power == 2:
+                if player.idle_dir == 1: player.image.clip_draw(30 * (int)(player.frame), 600 - 240, player.w, player.h, player.x, player.y)
+                elif player.idle_dir == -1: player.image.clip_draw(270 - 30 * (int)(player.frame), 600 - 240, player.w, player.h, player.x, player.y)
+
 
 class EndState:
     def enter(player, event):
@@ -179,11 +188,6 @@ class EndState:
 class DeathState:
 
     def enter(player, event):
-        player.gap = 0
-        player.speed = 0
-        player.frame = 0
-        #player.power = -1
-        player.hitTimer = time.time()
         pass
 
     def exit(player, event):
@@ -229,7 +233,7 @@ class Player:
     def __init__(self):
         self.image = load_image('mini30.png')
         self.w, self.h = 30, 30
-        self.power = 0
+        self.power = 2
         self.frame = 0
         self.idle_dir = 1
         self.dir = 0  # -1 left +1 right
@@ -250,6 +254,8 @@ class Player:
             return self.x-15, self.y - 15, self.x + 15, self.y + 15
         elif self.power == 1 or self.power == 2:
             return self.x - 15, self.y - 30, self.x + 15, self.y + 30
+        elif self.power == 4:
+            return -100,-100,-100,-100
         else:
             return 0,0,0,0
 
@@ -268,6 +274,7 @@ class Player:
             self.hitTimer = time.time()
             if self.power == 0:
                 self.h = 30
+            else: self.h = 60
 
     def upgrade(self, type):
         if type == 0:
@@ -312,26 +319,20 @@ class FireBall:
             self.image = load_image('fireball.png')
         self.x, self.y = x, y
         self.dir = dir
-        self.speed = 10
-        self.bounce = 0
+        self.speed = BALL_SPEED_PPS
+        self.upspeed = 0
         self.condition = 0
-        self.bounceTimer = 4
         self.frame = 0
 
     def draw(self):
         self.image.clip_draw(self.frame*20,0,20,20,self.x,self.y)
 
+    def get_bb(self):
+        return self.x - 15, self.y - 15, self.x + 15, self.y + 15
+
     def update(self, speed):
-        if self.bounce:
-            self.y += 6
-            self.bounceTimer -= 1
-        else:
-            self.y -= 6
-            self.bounceTimer = 4
-
-        if self.bounceTimer == 0:
-            self.bounce = 0
-
-        self.x += self.dir * self.speed
-        self.frame = (self.frame + 1) % 4
+        self.x += speed
+        self.x += BALL_SPEED_PPS * game_framework.frame_time * self.dir
+        self.y -= GRAVITY_SPEED_PPS * game_framework.frame_time
+        self.frame = (int)(self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 4
         pass

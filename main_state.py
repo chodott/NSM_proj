@@ -13,8 +13,6 @@ GRAVITY_SPEED_MPM = (GRAVITY_SPEED_KMPH * 1000.0 / 60.0)
 GRAVITY_SPEED_MPS = (GRAVITY_SPEED_MPM / 60.0)
 GRAVITY_SPEED_PPS = (GRAVITY_SPEED_MPS * PIXEL_PER_METER)
 gravity = GRAVITY_SPEED_PPS * game_framework.frame_time
-
-
 name = "MainState"
 
 player = None
@@ -105,6 +103,9 @@ def exit():
     game_world.clear()
     pass
 
+def fail():
+    pass
+
 
 def update():
     global Life
@@ -177,6 +178,11 @@ def update():
             else:
                 if troopa.speed == 0: troopa.hit(player.x)
                 else: player.hit()
+        #파이어볼 충돌
+        # if collide(fireball, troopa):
+        #     troopa.death()
+        #     print('충돋하네')
+
 
     for goomba in goombas:
         if collide(player, goomba):
@@ -185,20 +191,27 @@ def update():
                 goomba.hit(0)
             elif goomba.condition == 0:
                 player.hit()
-        print(player.power)
 
     if player.power == -1:
         UI.Life -= 1
+        player.power = 4
+        player.gap = 0
+        player.speed = 0
+        player.frame = 0
+        player.hitTimer = time.time()
         if UI.Life == -1:
             player.cur_state = DeathState
-            if player.y <= 68:
-                game_framework.change_state(over_state)
+
         else:
             player.cur_state = DeathState
-            if player.y <= 68:
-                game_framework.change_state(load_state)
-        #game_world.remove_object(player)
-        #player.remove(player)
+
+    if player.power == 4:
+        if UI.Life == -1 and player.y <= -10:
+            game_framework.change_state(over_state)
+            game_world.remove_object(player)
+        elif UI.Life >= 0 and player.y <= 10:
+            game_framework.change_state(load_state)
+            game_world.remove_object(player)
     # for boo in boos:
     #     if collide(player, boo):
     #         player.hit()
@@ -243,7 +256,7 @@ def initialize():
         ib.x, ib.y = 100, 180
         ib.case = 1
     ibs[0].x, ibs[0].y = 100, 150;
-    items[0].case = 1; items[0].x = 300; items[0].y = 100
+    items[0].case = 1; items[0].x = -100; items[0].y = 100
     ibs[1].x, ibs[1].y = 380, 250;
     items[1].case = 1
     for i in range(3):

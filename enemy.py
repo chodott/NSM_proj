@@ -98,6 +98,8 @@ class Troopa:
             return self.x-15, self.y-15, self.x+15, self.y+15
         elif self.condition == 1 or self.condition == 2:
             return self.x - 15, self.y - 25, self.x + 15, self.y + 25
+        elif self.condition == -1:
+            return -100, -100, -100, -100
 
     def stop(self):
         self.gravity = 0
@@ -113,6 +115,9 @@ class Troopa:
             self.x += self.speed * self.dir * 30
         elif self.condition == 0 and self.speed != 0:
             self.speed = 0
+
+    def death(self):
+        self.condition = -1
 
     def draw(self):
         #상태에 맞는 그리기 필요
@@ -191,7 +196,7 @@ class Boo:
         elif self.dir == pdir or self.dir == idir:
             self.condition = 1
 
-        if self.condition == 1:
+        if self.condition == 1 and -500 < px - self.x < 500:
             self.t += 1
             t = self.t/1000000
             self.x = (1-t) * self.x + t * px
