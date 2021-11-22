@@ -6,7 +6,7 @@ from player import *
 import game_framework
 
 PIXEL_PER_METER = (10.0 / 0.3)
-RUN_SPEED_KMPH = 10.0
+RUN_SPEED_KMPH = 5.0
 RUN_SPEED_MPM = (RUN_SPEED_KMPH * 1000.0 / 60.0)
 RUN_SPEED_MPS = (RUN_SPEED_MPM / 60.0)
 RUN_SPEED_PPS = (RUN_SPEED_MPS * PIXEL_PER_METER)
@@ -30,7 +30,7 @@ class Goomba:
             Goomba.image = load_image('goomba.png')
         self.x, self.y = -10,-10
         self.w, self.h = 30,30
-        self.speed = 0.1
+        self.speed = RUN_SPEED_PPS * game_framework.frame_time
         self.gravity = 5
         self.dir = -1
         self.frame = 1
@@ -87,7 +87,7 @@ class Troopa:
         self.x, self.y = -10, -10
         self.w, self.h = 30, 50
         self.dir = -1
-        self.speed = 0.05
+        self.speed = RUN_SPEED_PPS * game_framework.frame_time
         self.gravity = 1
         self.frame = 0
         self.condition = 1 #0 : 등껍질 1: 정상 2: 날개
@@ -109,10 +109,10 @@ class Troopa:
             self.condition -= 1
             self.frame = 0
         if self.condition == 0 and self.speed == 0:
-            self.speed = 0.5
+            self.speed = RUN_SPEED_PPS * game_framework.frame_time * 5
             if px > self.x: self.dir = -1
             else: self.dir = 1
-            self.x += self.speed * self.dir * 30
+            self.x += self.speed
         elif self.condition == 0 and self.speed != 0:
             self.speed = 0
 

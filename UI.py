@@ -36,8 +36,3 @@ class UI:
             self.image.clip_draw(15 * (self.alarm//100), 40, 15, 30, 740, 550)
             self.image.clip_draw(15 * (self.alarm % 100 // 10), 40, 15, 30, 755, 550)
             self.image.clip_draw(15 * (self.alarm % 100 % 10 // 1), 40, 15, 30, 770, 550)
-
-
-
-
-getCoin = 0

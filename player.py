@@ -8,7 +8,7 @@ import game_framework
 global fireball
 
 PIXEL_PER_METER = (10.0 / 0.3)
-RUN_SPEED_KMPH = 30.0
+RUN_SPEED_KMPH = 25.0
 RUN_SPEED_MPM = (RUN_SPEED_KMPH * 1000.0 / 60.0)
 RUN_SPEED_MPS = (RUN_SPEED_MPM / 60.0)
 RUN_SPEED_PPS = (RUN_SPEED_MPS * PIXEL_PER_METER)
@@ -68,6 +68,7 @@ class IdleState:
         pass
 
     def do(player):
+        player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 5
         player.speed = RUN_SPEED_PPS * game_framework.frame_time * player.dir
         player.x += player.speed
         if player.jumping:
@@ -124,7 +125,7 @@ class RunState:
     def do(player):
         player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 5
         player.speed = RUN_SPEED_PPS * game_framework.frame_time * player.dir
-        player.distance += player.speed
+        if player.move: player.distance += player.speed
         if player.distance < 400 or player.distance > 2600:
             player.x += player.speed
             player.gap = 0
@@ -238,6 +239,7 @@ class Player:
         self.idle_dir = 1
         self.dir = 0  # -1 left +1 right
         self.jumping = 0
+        self.move = 1
         self.maxjump = 150
         self.gap = 0
         self.mark = 0
@@ -277,7 +279,7 @@ class Player:
             else: self.h = 60
 
     def upgrade(self, type):
-        if type == 0:
+        if type == 0 and self.power == 0:
             self.power = 1
         elif type == 1:
             self.power = 2

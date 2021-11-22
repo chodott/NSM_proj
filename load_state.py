@@ -1,6 +1,7 @@
 from pico2d import *
 import game_framework
 import main_state
+from select_state import *
 from time import *
 from UI import *
 

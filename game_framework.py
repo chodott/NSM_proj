@@ -12,7 +12,9 @@ class GameState:
 
 running = None
 stack = None
-Life = 3
+clear_level = 1
+cur_level = 0
+
 
 def change_state(state):
     global stack

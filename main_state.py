@@ -117,7 +117,7 @@ def update():
     for boo in boos:
         boo.update(player.x, player.y, player.dir, player.idle_dir, -player.gap)
     ui.update()
-
+    player.move = 1
     #중력 초기화
     player.gravity = GRAVITY_SPEED_PPS * game_framework.frame_time
     for item in items:
@@ -149,25 +149,63 @@ def update():
 
     #블록 충돌 체크
     for ib in ibs:
+        for item in items:
+            if collide(item, ib):
+                item.stop()
+        for goomba in goombas:
+            if collide(goomba, ib):
+                goomba.stop()
+        for troopa in troopas:
+            if collide(troopa, ib):
+                troopa.stop()
         if collide(ib, player):
             if player.y - player.h / 2 >= ib.y + 10:
                 player.stop()
-            elif player.y + player.h/2 <= ib.y - 10:
+                break
+            elif ib.x <= player.x - 15 <ib.x + 15:
+                player.x = ib.x + 30
+                player.move = 0
+                break
+            elif ib.x - 15 <= player.x + 15 <ib.x:
+                player.x = ib.x - 30
+                player.move = 0
+                break
+            elif player.y + player.h/2 <= ib.y - 10 and player.jumping == 1:
                 ib.broke = 1; player.jumping = 0
-            else: player.speed = 0
+                items[ibs.index(ib)].hit()
+                items[ibs.index(ib)].y = ib.y + 30
+                items[ibs.index(ib)].x = ib.x
+                break
 
     for nb in nbs:
+        for item in items:
+            if collide(item, nb):
+                item.stop()
+        for goomba in goombas:
+            if collide(goomba, nb):
+                goomba.stop()
+        for troopa in troopas:
+            if collide(troopa, nb):
+                troopa.stop()
         if collide(nb, player):
             if player.y - player.h / 2 >= nb.y + 10:
                 player.stop()
-            elif player.y + player.h/2 <= nb.y - 10:
+                break
+            elif nb.x <= player.x - 15 <nb.x + 15:
+                player.x = nb.x + 30
+                player.move = 0
+                break
+            elif nb.x - 15 <= player.x + 15 <nb.x:
+                player.x = nb.x - 30
+                player.move = 0
+                break
+            elif player.y + player.h/2 <= nb.y - 10 and player.jumping == 1:
                 if player.power >= 1:
                     nb.broke = 1
                     nbs.remove(nb)
                     game_world.remove_object(nb)
                 nb.broke = 1; player.jumping = 0
-            else:
-                player.speed = 0
+                break
 
     #플레이어 적 충돌
     for troopa in troopas:
@@ -175,9 +213,10 @@ def update():
             if player.y - player.h / 2 >= troopa.y + 10:
                 player.attack()
                 troopa.hit(player.x)
+                break
             else:
-                if troopa.speed == 0: troopa.hit(player.x)
-                else: player.hit()
+                if troopa.speed == 0: troopa.hit(player.x); break
+                else: player.hit(); break
         #파이어볼 충돌
         # if collide(fireball, troopa):
         #     troopa.death()
@@ -189,8 +228,10 @@ def update():
             if player.y - player.h/2 >= goomba.y + 10:
                 player.attack()
                 goomba.hit(0)
+                break
             elif goomba.condition == 0:
                 player.hit()
+                break
 
     if player.power == -1:
         UI.Life -= 1
@@ -235,6 +276,7 @@ def update():
 
     #종료 조건
     if player.x >= 700:
+        game_framework.clear_level += 1
         game_framework.change_state(select_state)
 
 
@@ -249,26 +291,27 @@ def handle_events():
 
 
 def initialize():
-    goombas[0].x, goombas[0].y = 400, 500
-    troopas[0].x, troopas[0].y = 400, 400
-    boos[0].x, boos[0].y = 400, 400
-    for ib in ibs:
-        ib.x, ib.y = 100, 180
-        ib.case = 1
-    ibs[0].x, ibs[0].y = 100, 150;
-    items[0].case = 1; items[0].x = -100; items[0].y = 100
-    ibs[1].x, ibs[1].y = 380, 250;
-    items[1].case = 1
-    for i in range(3):
-        nbs[i].x, nbs[i].y = 350 + i * 30, 150
+    if game_framework.cur_level == 1:
+        goombas[0].x, goombas[0].y = 400, 500
+        troopas[0].x, troopas[0].y = 400, 400
+        boos[0].x, boos[0].y = 400, 400
+        for ib in ibs:
+            ib.x, ib.y = 100, 180
+            ib.case = 1
+        ibs[0].x, ibs[0].y = 100, 150;
+        items[0].case = 1; items[0].x = -100; items[0].y = 100
+        ibs[1].x, ibs[1].y = 380, 250;
+        items[1].case = 1
+        for i in range(3):
+            nbs[i].x, nbs[i].y = 350 + i * 30, 150
 
-    for i in range(0, 100):
-        grassTile1[i].case = 0
-        grassTile1[i].x, grassTile1[i].y = 15 +30 * i, 40
-    for i in range(100,200):
-        grassTile1[i].case = 1
-        grassTile1[i].x, grassTile1[i].y = 15 + 30 * (i-100), 15
+        for i in range(0, 100):
+            grassTile1[i].case = 0
+            grassTile1[i].x, grassTile1[i].y = 15 +30 * i, 40
+        for i in range(100,200):
+            grassTile1[i].case = 1
+            grassTile1[i].x, grassTile1[i].y = 15 + 30 * (i-100), 15
 
-    for i in range(0, 4):
-        coins[i].x, coins[i].y = i * 30 + 340, 80
+        for i in range(0, 4):
+            coins[i].x, coins[i].y = i * 30 + 340, 80
 

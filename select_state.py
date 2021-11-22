@@ -9,8 +9,7 @@ pos = [110, 205, 300, 485, 670]
 
 class SELECT:
     def __init__(self):
-        self.pos = 0
-        self.x = pos[self.pos]
+        self.x = pos[game_framework.cur_level]
         self.y = 310
         self.image = load_image('stagemario.png')
         self.frame = 0
@@ -22,10 +21,7 @@ class SELECT:
             self.image.clip_draw(30, 0, 30, 50, self.x, self.y)
 
     def update(self):
-        self.x = pos[self.pos]
-
-
-
+        self.x = pos[game_framework.cur_level]
 
 
 def enter():
@@ -67,6 +63,7 @@ def draw():
 
 
 def handle_events():
+    global clear_level
     events = get_events()
     for event in events:
         if event.type == SDL_QUIT:
@@ -74,11 +71,12 @@ def handle_events():
         elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_ESCAPE):
             game_framework.quit()
         elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_SPACE):
-            game_framework.change_state(load_state)
+            if game_framework.clear_level >= game_framework.cur_level and game_framework.cur_level != 0:
+                game_framework.change_state(load_state)
         elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_RIGHT):
-            if select.pos < 4: select.pos += 1
+            if game_framework.cur_level < 4: game_framework.cur_level += 1
         elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_LEFT):
-            if select.pos > 0: select.pos -= 1
+            if game_framework.cur_level > 0: game_framework.cur_level -= 1
 
     pass
 

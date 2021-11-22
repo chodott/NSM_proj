@@ -2,6 +2,12 @@ from pico2d import *
 from random import *
 import game_framework
 
+PIXEL_PER_METER = (10.0 / 0.3)
+RUN_SPEED_KMPH = 10.0
+RUN_SPEED_MPM = (RUN_SPEED_KMPH * 1000.0 / 60.0)
+RUN_SPEED_MPS = (RUN_SPEED_MPM / 60.0)
+RUN_SPEED_PPS = (RUN_SPEED_MPS * PIXEL_PER_METER)
+
 # Action Speed
 TIME_PER_ACTION = 0.5
 ACTION_PER_TIME = 1.0 / TIME_PER_ACTION
@@ -94,6 +100,9 @@ class Item:
     def stop(self):
         self.gravity = 0
 
+    def hit(self):
+        self.active = 1
+
     def draw(self):
         if self.case == 0:
             self.image.clip_draw(0,30,30,30,self.x,self.y)
@@ -104,9 +113,9 @@ class Item:
         if self.case == 0 and self.direction == -1: self.direction = randint(0,1)
         if self.active == 1 and self.case == 0:
             if self.direction == 0:
-                self.x -= 2
+                self.x -= RUN_SPEED_PPS * game_framework.frame_time
             elif self.direction == 1:
-                self.x += 2
+                self.x += RUN_SPEED_PPS * game_framework.frame_time
         self.y -= self.gravity
         self.x += speed
 
