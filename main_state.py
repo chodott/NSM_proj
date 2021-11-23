@@ -150,7 +150,7 @@ def update():
     #블록 충돌 체크
     for ib in ibs:
         for item in items:
-            if collide(item, ib):
+            if collide(item, ib) and item.active == 1:
                 item.stop()
         for goomba in goombas:
             if collide(goomba, ib):
@@ -171,10 +171,12 @@ def update():
                 player.move = 0
                 break
             elif player.y + player.h/2 <= ib.y - 10 and player.jumping == 1:
-                ib.broke = 1; player.jumping = 0
-                items[ibs.index(ib)].hit()
-                items[ibs.index(ib)].y = ib.y + 30
-                items[ibs.index(ib)].x = ib.x
+                if ib.broke != 1:
+                    items[ibs.index(ib)].hit()
+                    items[ibs.index(ib)].x = ib.x
+                    items[ibs.index(ib)].y = ib.y + 30
+                    ib.broke = 1;
+                player.jumping = 0
                 break
 
     for nb in nbs:

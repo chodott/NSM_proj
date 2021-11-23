@@ -126,7 +126,7 @@ class RunState:
         player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 5
         player.speed = RUN_SPEED_PPS * game_framework.frame_time * player.dir
         if player.move: player.distance += player.speed
-        if player.distance < 400 or player.distance > 2600:
+        if player.distance < 400 or player.distance > 2600 or player.move == 0:
             player.x += player.speed
             player.gap = 0
         else:
@@ -238,8 +238,8 @@ class Player:
         self.frame = 0
         self.idle_dir = 1
         self.dir = 0  # -1 left +1 right
-        self.jumping = 0
         self.move = 1
+        self.jumping = 0
         self.maxjump = 150
         self.gap = 0
         self.mark = 0

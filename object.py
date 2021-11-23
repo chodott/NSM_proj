@@ -93,6 +93,7 @@ class Item:
         self.direction = -1
         self.onAir = 1
         self.active = 0
+        self.cnt = 0;
 
     def get_bb(self):
         return self.x-15, self.y-15, self.x+15, self.y+15
@@ -101,7 +102,7 @@ class Item:
         self.gravity = 0
 
     def hit(self):
-        self.active = 1
+        self.cnt = 1
 
     def draw(self):
         if self.case == 0:
@@ -110,13 +111,15 @@ class Item:
             self.image.clip_draw(0,0,30,30,self.x,self.y)
 
     def update(self, speed):
+        if 0 < self.cnt <= 3: self.cnt += 1; self.y += 5
+        elif self.cnt == 4: self.active = 1
         if self.case == 0 and self.direction == -1: self.direction = randint(0,1)
         if self.active == 1 and self.case == 0:
             if self.direction == 0:
                 self.x -= RUN_SPEED_PPS * game_framework.frame_time
             elif self.direction == 1:
                 self.x += RUN_SPEED_PPS * game_framework.frame_time
-        self.y -= self.gravity
+            self.y -= self.gravity
         self.x += speed
 
     pass
