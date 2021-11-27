@@ -172,9 +172,9 @@ def update():
                 break
             elif player.y + player.h/2 <= ib.y - 10 and player.jumping == 1:
                 if ib.broke != 1:
-                    items[ibs.index(ib)].hit()
                     items[ibs.index(ib)].x = ib.x
-                    items[ibs.index(ib)].y = ib.y + 30
+                    items[ibs.index(ib)].y = ib.y + 1
+                    items[ibs.index(ib)].hit()
                     ib.broke = 1;
                 player.jumping = 0
                 break
