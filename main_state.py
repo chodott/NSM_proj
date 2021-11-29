@@ -112,6 +112,10 @@ def update():
     global boos
     global ui
     global gravity
+    if player.trans == 1: #변신 중 건들기 없기
+        player.upgrade()
+        return
+
     for game_object in game_world.all_objects():
         game_object.update(-player.gap)
     for boo in boos:
@@ -138,7 +142,7 @@ def update():
         if collide(grass,player):
             player.stop()
         for goomba in goombas:
-            if collide(grass, goomba):
+            if collide(grass, goomba) and goomba.condition != -1:
                 goomba.stop()
         for troopa in troopas:
             if collide(grass, troopa):
@@ -153,7 +157,7 @@ def update():
             if collide(item, ib) and item.active == 1:
                 item.stop()
         for goomba in goombas:
-            if collide(goomba, ib):
+            if collide(goomba, ib) and goomba.condition != -1:
                 goomba.stop()
         for troopa in troopas:
             if collide(troopa, ib):
@@ -173,7 +177,7 @@ def update():
             elif player.y + player.h/2 <= ib.y - 10 and player.jumping == 1:
                 if ib.broke != 1:
                     items[ibs.index(ib)].x = ib.x
-                    items[ibs.index(ib)].y = ib.y + 1
+                    items[ibs.index(ib)].y = ib.y + 2
                     items[ibs.index(ib)].hit()
                     ib.broke = 1;
                 player.jumping = 0
@@ -184,7 +188,7 @@ def update():
             if collide(item, nb):
                 item.stop()
         for goomba in goombas:
-            if collide(goomba, nb):
+            if collide(goomba, nb) and goomba.condition != -1:
                 goomba.stop()
         for troopa in troopas:
             if collide(troopa, nb):
@@ -219,6 +223,10 @@ def update():
             else:
                 if troopa.speed == 0: troopa.hit(player.x); break
                 else: player.hit(); break
+        if troopa.condition == 0 and troopa.speed != 0:
+            for goomba in goombas:
+                if collide(troopa,goomba):
+                    goomba.hit(1)
         #파이어볼 충돌
         # if collide(fireball, troopa):
         #     troopa.death()
@@ -235,6 +243,8 @@ def update():
                 player.hit()
                 break
 
+    if player.y <= 10 and player.power != 4:
+        player.power = -1
     if player.power == -1:
         UI.Life -= 1
         player.power = 4
@@ -252,9 +262,10 @@ def update():
         if UI.Life == -1 and player.y <= -10:
             game_framework.change_state(over_state)
             game_world.remove_object(player)
-        elif UI.Life >= 0 and player.y <= 10:
+        if UI.Life >= 0 and player.y <= -10:
             game_framework.change_state(load_state)
             game_world.remove_object(player)
+
     # for boo in boos:
     #     if collide(player, boo):
     #         player.hit()
@@ -271,6 +282,7 @@ def update():
     #아이템 충돌
     for item in items:
         if collide(player,item):
+            player.transTimer = time.time()
             player.upgrade(item.case)
             items.remove(item)
             game_world.remove_object(item)

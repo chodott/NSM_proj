@@ -8,10 +8,21 @@ import game_framework
 global fireball
 
 PIXEL_PER_METER = (10.0 / 0.3)
-RUN_SPEED_KMPH = 25.0
+RUN_SPEED_KMPH = 10.0
 RUN_SPEED_MPM = (RUN_SPEED_KMPH * 1000.0 / 60.0)
 RUN_SPEED_MPS = (RUN_SPEED_MPM / 60.0)
 RUN_SPEED_PPS = (RUN_SPEED_MPS * PIXEL_PER_METER)
+
+ACCEL_KMPH = 0.5
+ACCEL_MPM = (ACCEL_KMPH * 1000.0 / 60.0)
+ACCEL_MPS = (ACCEL_MPM / 60.0)
+ACCEL_PPS = (ACCEL_MPS * PIXEL_PER_METER)
+
+MAX_SPEED_KMPH = 30
+MAX_SPEED_MPM = (MAX_SPEED_KMPH * 1000.0 / 60.0)
+MAX_SPEED_MPS = (MAX_SPEED_MPM / 60.0)
+MAX_SPEED_PPS = (MAX_SPEED_MPS * PIXEL_PER_METER)
+
 
 JUMP_SPEED_KMPH = 60.0
 JUMP_SPEED_MPM = (JUMP_SPEED_KMPH * 1000.0 / 60.0)
@@ -69,15 +80,23 @@ class IdleState:
 
     def do(player):
         player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 5
-        player.speed = RUN_SPEED_PPS * game_framework.frame_time * player.dir
-        player.x += player.speed
+        if player.speed < 0:
+            player.accel += ACCEL_PPS
+        elif player.speed > 0:
+            player.accel -= ACCEL_PPS
+        player.speed = (player.dir*RUN_SPEED_PPS + player.accel) * game_framework.frame_time
+        if player.move: player.distance += player.speed
+        if player.distance < 400 or player.distance > 2600 or player.move == 0:
+            player.x += player.speed
+            player.gap = 0
+        else:
+            player.gap = player.speed
         if player.jumping:
             if player.y >= player.mark + player.maxjump:
                 player.jumping = 0
             else:
                 player.y += JUMP_SPEED_PPS * game_framework.frame_time
         player.y -= player.gravity
-        player.gap = player.speed
         if time.time() - player.hitTimer > 2: player.hitTimer = 0
 
     def draw(player):
@@ -124,7 +143,11 @@ class RunState:
 
     def do(player):
         player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 5
-        player.speed = RUN_SPEED_PPS * game_framework.frame_time * player.dir
+        if -MAX_SPEED_PPS < player.speed/game_framework.frame_time < MAX_SPEED_PPS:
+            if player.dir == 1: player.accel += ACCEL_PPS
+            elif player.dir == -1: player.accel -= ACCEL_PPS
+
+        player.speed = (player.dir*RUN_SPEED_PPS + player.accel) * game_framework.frame_time
         if player.move: player.distance += player.speed
         if player.distance < 400 or player.distance > 2600 or player.move == 0:
             player.x += player.speed
@@ -234,11 +257,14 @@ class Player:
     def __init__(self):
         self.image = load_image('mini30.png')
         self.w, self.h = 30, 30
-        self.power = 2
+        self.power = 0
+        self.accel = ACCEL_PPS
         self.frame = 0
         self.idle_dir = 1
         self.dir = 0  # -1 left +1 right
         self.move = 1
+        self.trans = 0
+        self.transTimer = 0
         self.jumping = 0
         self.maxjump = 150
         self.gap = 0
@@ -278,13 +304,19 @@ class Player:
                 self.h = 30
             else: self.h = 60
 
-    def upgrade(self, type):
+    def upgrade(self, type=-1):
         if type == 0 and self.power == 0:
             self.power = 1
+            self.trans = 1
         elif type == 1:
             self.power = 2
-        self.h = 60
-        self.y += 15
+            self.trans = 1
+        if type == -1:
+            if self.h == 30 and time.time() - self.transTimer < 0.3: self.h = 40
+            elif self.h == 40 and 0.3 < time.time() - self.transTimer < 0.6: self.h = 50
+            elif self.h == 50 and 0.6 < time.time() - self.transTimer < 0.9: self.h = 60
+        if self.h == 60: self.trans = 0
+        print(self.h)
         
 
     def draw(self):

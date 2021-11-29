@@ -58,9 +58,8 @@ class Goomba:
                 del(self)
 
         elif self.condition == -1:
-            if time.time() - self.deathtime > 1:
-                del(self)
             self.y -= self.gravity
+            del (self)
         else:
             self.y -= self.gravity
             self.frame = (self.frame + + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 7
