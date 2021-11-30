@@ -18,7 +18,7 @@ class Block:
     def __init__(self):
         if Block.image == None:
             Block.image = load_image('block30.png')
-        self.x, self.y = 200, 150
+        self.x, self.y = 0, 0
         self.frame = 0
         self.broke = 0
         self.case = 0
@@ -177,6 +177,25 @@ class Flag:
         if self.condi == 0:
             return self.x-15, self.y-105, self.x+15, self.y+105
         else: return 0,0,0,0
+
+    def draw(self):
+        self.image.draw(self.x, self.y)
+
+    def update(self, speed):
+        self.x += speed
+        pass
+
+class Pipe:
+    image = None
+    def __init__(self):
+        self.x, self.y = 0,0
+        self.active = 0
+        self.h = 60
+        if Pipe.image == None:
+            Pipe.image = load_image('pipe.png')
+
+    def get_bb(self):
+        return self.x - 30, self.y - self.h/2, self.x + 30, self.y + self.h/2
 
     def draw(self):
         self.image.draw(self.x, self.y)

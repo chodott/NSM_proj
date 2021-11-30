@@ -312,9 +312,9 @@ class Player:
             self.power = 2
             self.trans = 1
         if type == -1:
-            if self.h == 30 and time.time() - self.transTimer < 0.3: self.h = 40
-            elif self.h == 40 and 0.3 < time.time() - self.transTimer < 0.6: self.h = 50
-            elif self.h == 50 and 0.6 < time.time() - self.transTimer < 0.9: self.h = 60
+            if self.h == 30 and time.time() - self.transTimer < 0.3: self.h = 40; self.y += 5
+            elif self.h == 40 and 0.3 < time.time() - self.transTimer < 0.6: self.h = 50; self.y += 5
+            elif self.h == 50 and 0.6 < time.time() - self.transTimer < 0.9: self.h = 60; self.y += 5
         if self.h == 60: self.trans = 0
         print(self.h)
         

@@ -42,8 +42,8 @@ class Goomba:
         return self.x-15, self.y-15, self.x+15, self.y+15
 
     def draw(self):
-        if self.condition==1: self.image.clip_draw(0,0,30,15,self.x,self.y)
-        elif self.condition==-1: self.image.clip_draw(0,30,30,30,self.x,self.y)
+        if self.condition == 1: self.image.clip_draw(0,0,30,15,self.x,self.y)
+        elif self.condition == -1: self.image.clip_draw(0,30,30,30,self.x,self.y)
         else:
             self.image.clip_draw(0,270-(int)(self.frame)*30,30,30,self.x,self.y)
 
@@ -59,11 +59,11 @@ class Goomba:
 
         elif self.condition == -1:
             self.y -= self.gravity
-            del (self)
+            del(self)
         else:
             self.y -= self.gravity
             self.frame = (self.frame + + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 7
-            self.x -= self.speed
+            self.x += self.speed * self.dir
 
     def hit(self, type):
         self.deathtime = time.time()
@@ -73,8 +73,6 @@ class Goomba:
 
         elif type == 1:
             self.condition = -1
-
-
 
 
 

@@ -21,6 +21,7 @@ items = []
 ibs = []
 nbs = []
 grassTile1 =[]
+pipes = []
 coins = []
 goombas = []
 troopas = []
@@ -41,7 +42,7 @@ def collide(a, b):
 def enter():
     global background, player
     global ibs, nbs, grassTile1
-    global coins, items, flag
+    global coins, items, flag, pipes
     global goombas, troopas, boos
     global ui
     #UI
@@ -56,18 +57,21 @@ def enter():
     items = [Item() for i in range(5)]
     game_world.add_objects(items,1)
     #블럭
-    ibs = [Block() for i in range(2)]
+    ibs = [Block() for i in range(10)]
     nbs = [Block() for i in range(3)]
     game_world.add_objects(ibs, 1)
     game_world.add_objects(nbs, 1)
     #플랫폼
     grassTile1 = [Platform() for i in range(200)]
     game_world.add_objects(grassTile1,1)
+    #토관
+    pipes = [Pipe() for i in range(5)]
+    game_world.add_objects(pipes,1)
     #코인
     coins = [Coin() for i in range(4)]
     game_world.add_objects(coins, 1)
     #적
-    goombas = [Goomba() for i in range(2)]
+    goombas = [Goomba() for i in range(4)]
     troopas = [Troopa() for i in range(2)]
     boos = [Boo() for i in range(2)]
     game_world.add_objects(goombas, 1)
@@ -136,6 +140,36 @@ def update():
         player.cur_state = EndState
         player.x = flag.x
         flag.condi = 1
+
+    #토관 충돌
+    for pipe in pipes:
+        for goomba in goombas:
+            if collide(goomba, pipe) and goomba.condition != -1:
+                if goomba.y - 15 >= pipe.y + 10:
+                    goomba.stop()
+                elif pipe.x <= goomba.x-15<pipe.x+30:
+                    goomba.dir = 1
+                    goomba.x = pipe.x + 45
+                elif pipe.x - 40 <= goomba.x + 15 < pipe.x:
+                    goomba.dir = -1
+                    goomba.x = pipe.x - 45
+
+        for troopa in troopas:
+            if collide(troopa, pipe):
+                troopa.stop()
+        if collide(pipe, player):
+            if player.y - player.h / 2 >= pipe.y + 10:
+                player.stop()
+                break
+            elif pipe.x <= player.x - 15 <pipe.x + 30:
+                player.x = pipe.x + 45
+                player.move = 0
+                break
+            elif pipe.x - 30 <= player.x + 15 <pipe.x:
+                player.x = pipe.x - 45
+                player.move = 0
+                break
+
 
     #플랫폼 충돌 체크
     for grass in grassTile1:
@@ -243,6 +277,8 @@ def update():
                 player.hit()
                 break
 
+    #죽음
+    if ui.alarm <= 0: player.power = -1
     if player.y <= 10 and player.power != 4:
         player.power = -1
     if player.power == -1:
@@ -306,19 +342,23 @@ def handle_events():
 
 def initialize():
     if game_framework.cur_level == 1:
-        goombas[0].x, goombas[0].y = 400, 500
+        goombas[0].x, goombas[0].y = 510, 90
+        goombas[1].x, goombas[1].y = 1000,90
+        goombas[2].x, goombas[2].y = 1650,90
+        goombas[3].x, goombas[3].y = 1680,90
         troopas[0].x, troopas[0].y = 400, 400
         boos[0].x, boos[0].y = 400, 400
+        #아이템 블록 선언
         for ib in ibs:
-            ib.x, ib.y = 100, 180
             ib.case = 1
-        ibs[0].x, ibs[0].y = 100, 150;
-        items[0].case = 1; items[0].x = -100; items[0].y = 100
-        ibs[1].x, ibs[1].y = 380, 250;
-        items[1].case = 1
+        ibs[0].x, ibs[0].y = 300, 150; ibs[1].x, ibs[1].y = 510, 270; ibs[2].x, ibs[2].y = 480, 150; ibs[3].x, ibs[3].y = 540, 150
+
+        #노말 블록 선언
         for i in range(3):
             nbs[i].x, nbs[i].y = 350 + i * 30, 150
+        nbs[0].x, nbs[0].y = 450, 150; nbs[1].x, nbs[1].y = 510,150; nbs[2].x, nbs[2].y = 570,150
 
+        #플랫폼
         for i in range(0, 100):
             grassTile1[i].case = 0
             grassTile1[i].x, grassTile1[i].y = 15 +30 * i, 40
@@ -326,6 +366,11 @@ def initialize():
             grassTile1[i].case = 1
             grassTile1[i].x, grassTile1[i].y = 15 + 30 * (i-100), 15
 
+        #토관
+        pipes[0].x, pipes[0].y = 900, 90
+        pipes[1].x, pipes[1].y = 1200, 90
+        pipes[2].x, pipes[2].y = 1500, 90
+        #코인
         for i in range(0, 4):
             coins[i].x, coins[i].y = i * 30 + 340, 80
 
