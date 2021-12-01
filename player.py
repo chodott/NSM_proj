@@ -6,7 +6,7 @@ import game_world
 import game_framework
 
 PIXEL_PER_METER = (10.0 / 0.3)
-RUN_SPEED_KMPH = 10.0
+RUN_SPEED_KMPH = 5.0
 RUN_SPEED_MPM = (RUN_SPEED_KMPH * 1000.0 / 60.0)
 RUN_SPEED_MPS = (RUN_SPEED_MPM / 60.0)
 RUN_SPEED_PPS = (RUN_SPEED_MPS * PIXEL_PER_METER)
@@ -16,7 +16,7 @@ ACCEL_MPM = (ACCEL_KMPH * 1000.0 / 60.0)
 ACCEL_MPS = (ACCEL_MPM / 60.0)
 ACCEL_PPS = (ACCEL_MPS * PIXEL_PER_METER)
 
-MAX_SPEED_KMPH = 30
+MAX_SPEED_KMPH = 25
 MAX_SPEED_MPM = (MAX_SPEED_KMPH * 1000.0 / 60.0)
 MAX_SPEED_MPS = (MAX_SPEED_MPM / 60.0)
 MAX_SPEED_PPS = (MAX_SPEED_MPS * PIXEL_PER_METER)
@@ -203,6 +203,7 @@ class SitState:
             player.h = 60
             if player.gravity == 0:
                 player.y += 20
+        player.jumping = 0
         pass
 
     def do(player):
@@ -291,6 +292,7 @@ next_state_table = {
                SPACE: RunState, UP_DOWN: RunState,
                DOWN_DOWN: SitState, DOWN_UP:RunState},
     EndState: {RIGHT_UP: EndState, LEFT_UP: EndState,
+
                LEFT_DOWN: EndState, RIGHT_DOWN: EndState,
                SPACE: EndState, UP_DOWN: EndState,
                DOWN_DOWN: EndState, DOWN_UP: EndState},
@@ -298,10 +300,10 @@ next_state_table = {
                LEFT_DOWN: DeathState, RIGHT_DOWN: DeathState,
                SPACE: DeathState, UP_DOWN: DeathState,
                 DOWN_DOWN: DeathState, DOWN_UP: DeathState},
-    SitState:{RIGHT_UP: SitState, LEFT_UP: SitState,
-               LEFT_DOWN: SitState, RIGHT_DOWN: SitState,
-               SPACE: SitState, UP_DOWN: SitState,
-                DOWN_DOWN: SitState, DOWN_UP: IdleState}
+    SitState:{RIGHT_UP: IdleState, LEFT_UP: IdleState,
+               LEFT_DOWN: RunState, RIGHT_DOWN: RunState,
+               SPACE: SitState, UP_DOWN: IdleState,
+                DOWN_DOWN: SitState, DOWN_UP: SitState}
 }
 
 
@@ -328,6 +330,8 @@ class Player:
         self.distance = 0
         self.onAir = 1
         self.hitTimer = 0
+        self.fbcnt = 0
+        self.fb = [FireBall() for i in range(10)]
         self.event_que = []
         self.cur_state = IdleState
         self.cur_state.enter(self,None)
@@ -338,10 +342,8 @@ class Player:
             return self.x-15, self.y - 15, self.x + 15, self.y + 15
         elif self.power == 1 or self.power == 2:
             return self.x - 15, self.y - self.h/2, self.x + 15, self.y + self.h/2
-        elif self.power == 4:
-            return -100,-100,-100,-100
         else:
-            return 0,0,0,0
+            return -100,-100,-100,-100
 
     def stop(self):
         self.gravity = 0
@@ -386,8 +388,14 @@ class Player:
             self.cur_state.enter(self,event)
 
     def fire_ball(self):
-        if self.power == 2:
+        if self.power == 2 and time.time() - self.transTimer > 0.5:
+            self.fb[self.fbcnt].x, self.fb[self.fbcnt].y, self.fb[self.fbcnt] = self.x, self.y, self.dir
+            self.fbcnt = (self.fbcnt + 1) % 10
             pass
+
+    def warp(self):
+        if self.x < self.goalpipe:
+            self.speed = RUN_SPEED_PPS * game_framework.frame_time * 2
 
     def add_event(self, event):
         self.event_que.insert(0, event)
@@ -402,10 +410,10 @@ class Player:
 
 class FireBall:
     image = None
-    def __init__(self, x = -100, y = -100, dir = 1):
+    def __init__(self):
         if FireBall.image == None:
             self.image = load_image('fireball.png')
-        self.x, self.y = x, y
+        self.x, self.y = 100, -100
         self.dir = dir
         self.speed = BALL_SPEED_PPS
         self.upspeed = 0

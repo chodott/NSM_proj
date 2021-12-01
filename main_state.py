@@ -119,12 +119,16 @@ def update():
     global boos
     global ui
     global gravity
+
     if player.trans == 1: #변신 중 건들기 없기
         player.upgrade()
         return
-
     for game_object in game_world.all_objects():
         game_object.update(-player.gap)
+
+    if player.power == 3:
+        return
+
     for boo in boos:
         boo.update(player.x, player.y, player.dir, player.idle_dir, -player.gap)
     ui.update()
@@ -145,31 +149,38 @@ def update():
         flag.condi = 1
 
     #토관 충돌
-    for pipe in pipes:
+    for i in range(len(pipes)):
         for goomba in goombas:
-            if collide(goomba, pipe) and goomba.condition != -1:
-                if goomba.y - 15 >= pipe.y + 10:
+            if collide(goomba, pipes[i]) and goomba.condition != -1:
+                if goomba.y - 15 >= pipes[i].y + 10:
                     goomba.stop()
-                elif pipe.x <= goomba.x-15<pipe.x+30:
+                elif pipes[i].x <= goomba.x-15<pipes[i].x+30:
                     goomba.dir = 1
-                    goomba.x = pipe.x + 45
-                elif pipe.x - 40 <= goomba.x + 15 < pipe.x:
+                    goomba.x = pipes[i].x + 45
+                elif pipes[i].x - 40 <= goomba.x + 15 < pipes[i].x:
                     goomba.dir = -1
-                    goomba.x = pipe.x - 45
+                    goomba.x = pipes[i].x - 45
 
         for troopa in troopas:
-            if collide(troopa, pipe):
+            if collide(troopa, pipes[i]):
                 troopa.stop()
-        if collide(pipe, player):
-            if player.y - player.h / 2 >= pipe.y + pipe.h/2 - 5:
+
+        if collide(pipes[i], player):
+            if player.y - player.h / 2 >= pipes[i].y + pipes[i].h/2 - 5:
                 player.stop()
+                if player.cur_state == SitState and pipes[i].active != 0:
+                    player.x = pipes[i].x
+                    player.y -= GRAVITY_SPEED_PPS * game_framework.frame_time
+                    player.goalpipe = pipes[i+1].x
+                    player.power = 3
+
                 break
-            elif pipe.x <= player.x - 15 <pipe.x + 30:
-                player.x = pipe.x + 45
+            elif pipes[i].x <= player.x - 15 < pipes[i].x + 30:
+                player.x = pipes[i].x + 45
                 player.move = 0
                 break
-            elif pipe.x - 30 <= player.x + 15 <pipe.x:
-                player.x = pipe.x - 45
+            elif pipes[i].x - 30 <= player.x + 15 < pipes[i].x:
+                player.x = pipes[i].x - 45
                 player.move = 0
                 break
 
@@ -252,7 +263,7 @@ def update():
 
     for eb in ebs:
         if collide(eb, player):
-            if player.y - player.h / 2 >= eb.y + 14:
+            if player.y - player.h / 2 >= eb.y + 10:
                 player.stop()
                 break
             elif eb.x <= player.x - 15 <eb.x + 15:
@@ -363,8 +374,8 @@ def initialize():
     if game_framework.cur_level == 1:
         goombas[0].x, goombas[0].y = 510, 100
         goombas[1].x, goombas[1].y = 1000,100
-        goombas[2].x, goombas[2].y = 1650,100
-        goombas[3].x, goombas[3].y = 1680,100
+        goombas[2].x, goombas[2].y = 1250,100
+        goombas[3].x, goombas[3].y = 1280,100
         #troopas[0].x, troopas[0].y = 400, 400
         boos[0].x, boos[0].y = 400, 400
         #아이템 블록 선언
@@ -392,9 +403,9 @@ def initialize():
             grassTile1[i].x, grassTile1[i].y = 15 + 30 * (i-100), 15
 
         #토관
-        pipes[0].x, pipes[0].y = 900, 90
+        pipes[0].x, pipes[0].y = 900, 90; pipes[0].active = 1
         pipes[1].x, pipes[1].y = 1200, 105; pipes[1].h = 90
-        pipes[2].x, pipes[2].y = 1500, 120; pipes[2].h = 120
+        pipes[2].x, pipes[2].y = 1500, 120; pipes[2].h = 120; pipes[2].active = 1
         #코인
         for i in range(0, 4):
             coins[i].x, coins[i].y = i * 30 + 340, 80
