@@ -49,7 +49,7 @@ class Block:
                     self.image.clip_draw(30*3, 30, 30, 30, self.x, self.y)
 
             elif self.case == 2:
-                self.image.clip_draw(0, 30, 30, 30, self.x, self.y)
+                self.image.clip_draw(30, 0, 30, 30, self.x, self.y)
         else:
             self.image.clip_draw(0, 0, 30, 30, self.x, self.y)
 
@@ -198,7 +198,12 @@ class Pipe:
         return self.x - 30, self.y - self.h/2, self.x + 30, self.y + self.h/2
 
     def draw(self):
-        self.image.draw(self.x, self.y)
+        if self.h == 60:
+            self.image.clip_draw(0,0,60,60,self.x, self.y)
+        elif self.h == 90:
+            self.image.clip_draw(60, 0, 60, 90, self.x, self.y)
+        elif self.h == 120:
+            self.image.clip_draw(120, 0, 60, 120, self.x, self.y)
 
     def update(self, speed):
         self.x += speed

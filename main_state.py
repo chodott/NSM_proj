@@ -8,7 +8,7 @@ import load_state
 import over_state
 import select_state
 
-GRAVITY_SPEED_KMPH = 30.0
+GRAVITY_SPEED_KMPH = 35.0
 GRAVITY_SPEED_MPM = (GRAVITY_SPEED_KMPH * 1000.0 / 60.0)
 GRAVITY_SPEED_MPS = (GRAVITY_SPEED_MPM / 60.0)
 GRAVITY_SPEED_PPS = (GRAVITY_SPEED_MPS * PIXEL_PER_METER)
@@ -20,6 +20,7 @@ flag = None
 items = []
 ibs = []
 nbs = []
+ebs = []
 grassTile1 =[]
 pipes = []
 coins = []
@@ -41,7 +42,7 @@ def collide(a, b):
 
 def enter():
     global background, player
-    global ibs, nbs, grassTile1
+    global ibs, nbs, ebs, grassTile1
     global coins, items, flag, pipes
     global goombas, troopas, boos
     global ui
@@ -59,13 +60,15 @@ def enter():
     #블럭
     ibs = [Block() for i in range(10)]
     nbs = [Block() for i in range(3)]
+    ebs = [Block() for i in range(44)]
     game_world.add_objects(ibs, 1)
     game_world.add_objects(nbs, 1)
+    game_world.add_objects(ebs, 1)
     #플랫폼
     grassTile1 = [Platform() for i in range(200)]
     game_world.add_objects(grassTile1,1)
     #토관
-    pipes = [Pipe() for i in range(5)]
+    pipes = [Pipe() for i in range(3)]
     game_world.add_objects(pipes,1)
     #코인
     coins = [Coin() for i in range(4)]
@@ -158,7 +161,7 @@ def update():
             if collide(troopa, pipe):
                 troopa.stop()
         if collide(pipe, player):
-            if player.y - player.h / 2 >= pipe.y + 10:
+            if player.y - player.h / 2 >= pipe.y + pipe.h/2 - 5:
                 player.stop()
                 break
             elif pipe.x <= player.x - 15 <pipe.x + 30:
@@ -197,7 +200,7 @@ def update():
             if collide(troopa, ib):
                 troopa.stop()
         if collide(ib, player):
-            if player.y - player.h / 2 >= ib.y + 10:
+            if player.y - player.h / 2 >= ib.y + 5:
                 player.stop()
                 break
             elif ib.x <= player.x - 15 <ib.x + 15:
@@ -231,11 +234,11 @@ def update():
             if player.y - player.h / 2 >= nb.y + 10:
                 player.stop()
                 break
-            elif nb.x <= player.x - 15 <nb.x + 15:
+            elif nb.x <= player.x - 15 < nb.x + 15:
                 player.x = nb.x + 30
                 player.move = 0
                 break
-            elif nb.x - 15 <= player.x + 15 <nb.x:
+            elif nb.x - 15 <= player.x + 15 < nb.x:
                 player.x = nb.x - 30
                 player.move = 0
                 break
@@ -244,8 +247,23 @@ def update():
                     nb.broke = 1
                     nbs.remove(nb)
                     game_world.remove_object(nb)
-                nb.broke = 1; player.jumping = 0
+                player.jumping = 0
                 break
+
+    for eb in ebs:
+        if collide(eb, player):
+            if player.y - player.h / 2 >= eb.y + 14:
+                player.stop()
+                break
+            elif eb.x <= player.x - 15 <eb.x + 15:
+                player.x = eb.x + 30 + 1
+                player.move = 0
+                break
+            elif eb.x - 15 <= player.x + 15 <eb.x:
+                player.x = eb.x - 30 - 1
+                player.move = 0
+                break
+
 
     #플레이어 적 충돌
     for troopa in troopas:
@@ -262,9 +280,10 @@ def update():
                 if collide(troopa,goomba):
                     goomba.hit(1)
         #파이어볼 충돌
-        # if collide(fireball, troopa):
-        #     troopa.death()
-        #     print('충돋하네')
+        #for fb in fireball:
+        #    if collide(fb, troopa):
+        #        troopa.death()
+        #        print('충돋하네')
 
 
     for goomba in goombas:
@@ -342,34 +361,40 @@ def handle_events():
 
 def initialize():
     if game_framework.cur_level == 1:
-        goombas[0].x, goombas[0].y = 510, 90
-        goombas[1].x, goombas[1].y = 1000,90
-        goombas[2].x, goombas[2].y = 1650,90
-        goombas[3].x, goombas[3].y = 1680,90
-        troopas[0].x, troopas[0].y = 400, 400
+        goombas[0].x, goombas[0].y = 510, 100
+        goombas[1].x, goombas[1].y = 1000,100
+        goombas[2].x, goombas[2].y = 1650,100
+        goombas[3].x, goombas[3].y = 1680,100
+        #troopas[0].x, troopas[0].y = 400, 400
         boos[0].x, boos[0].y = 400, 400
         #아이템 블록 선언
-        for ib in ibs:
-            ib.case = 1
+        for ib in ibs: ib.case = 1
         ibs[0].x, ibs[0].y = 300, 150; ibs[1].x, ibs[1].y = 510, 270; ibs[2].x, ibs[2].y = 480, 150; ibs[3].x, ibs[3].y = 540, 150
 
         #노말 블록 선언
-        for i in range(3):
-            nbs[i].x, nbs[i].y = 350 + i * 30, 150
         nbs[0].x, nbs[0].y = 450, 150; nbs[1].x, nbs[1].y = 510,150; nbs[2].x, nbs[2].y = 570,150
+
+        #엔딩 블록
+        for eb in ebs:
+            eb.case = 2
+        cnt = 0
+        for i in range(1,8):
+            for j in range(9-i):
+                ebs[cnt].x, ebs[cnt].y = 2250 - 30 * j, 45 + i * 30
+                cnt += 1
 
         #플랫폼
         for i in range(0, 100):
             grassTile1[i].case = 0
-            grassTile1[i].x, grassTile1[i].y = 15 +30 * i, 40
+            grassTile1[i].x, grassTile1[i].y = 15 +30 * i, 45
         for i in range(100,200):
             grassTile1[i].case = 1
             grassTile1[i].x, grassTile1[i].y = 15 + 30 * (i-100), 15
 
         #토관
         pipes[0].x, pipes[0].y = 900, 90
-        pipes[1].x, pipes[1].y = 1200, 90
-        pipes[2].x, pipes[2].y = 1500, 90
+        pipes[1].x, pipes[1].y = 1200, 105; pipes[1].h = 90
+        pipes[2].x, pipes[2].y = 1500, 120; pipes[2].h = 120
         #코인
         for i in range(0, 4):
             coins[i].x, coins[i].y = i * 30 + 340, 80

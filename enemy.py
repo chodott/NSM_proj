@@ -45,7 +45,8 @@ class Goomba:
         if self.condition == 1: self.image.clip_draw(0,0,30,15,self.x,self.y)
         elif self.condition == -1: self.image.clip_draw(0,30,30,30,self.x,self.y)
         else:
-            self.image.clip_draw(0,270-(int)(self.frame)*30,30,30,self.x,self.y)
+            if self.dir == -1: self.image.clip_draw(0,270-(int)(self.frame)*30,30,30,self.x,self.y)
+            elif self.dir == 1: self.image.clip_draw(30,270-(int)(self.frame)*30,30,30,self.x,self.y)
 
     def stop(self):
         self.gravity = 0

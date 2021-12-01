@@ -5,8 +5,6 @@ import time
 import game_world
 import game_framework
 
-global fireball
-
 PIXEL_PER_METER = (10.0 / 0.3)
 RUN_SPEED_KMPH = 10.0
 RUN_SPEED_MPM = (RUN_SPEED_KMPH * 1000.0 / 60.0)
@@ -45,14 +43,16 @@ ACTION_PER_TIME = 1.0 / TIME_PER_ACTION
 FRAMES_PER_ACTION = 4
 
 #Boy Event
-RIGHT_DOWN, LEFT_DOWN, RIGHT_UP, LEFT_UP, SPACE, UP_DOWN = range(6)
+RIGHT_DOWN, LEFT_DOWN, RIGHT_UP, LEFT_UP, SPACE, UP_DOWN, DOWN_DOWN, DOWN_UP = range(8)
 key_event_table = {
     (SDL_KEYDOWN, SDLK_RIGHT): RIGHT_DOWN,
     (SDL_KEYDOWN, SDLK_LEFT): LEFT_DOWN,
     (SDL_KEYUP, SDLK_RIGHT): RIGHT_UP,
     (SDL_KEYUP, SDLK_LEFT): LEFT_UP,
     (SDL_KEYDOWN, SDLK_SPACE): SPACE,
-    (SDL_KEYDOWN, SDLK_UP): UP_DOWN
+    (SDL_KEYDOWN, SDLK_UP): UP_DOWN,
+    (SDL_KEYDOWN, SDLK_DOWN): DOWN_DOWN,
+    (SDL_KEYUP, SDLK_DOWN): DOWN_UP
 }
 
 class IdleState:
@@ -85,6 +85,7 @@ class IdleState:
         elif player.speed > 0:
             player.accel -= ACCEL_PPS
         player.speed = (player.dir*RUN_SPEED_PPS + player.accel) * game_framework.frame_time
+        if -0.1 < player.speed < 0.1: player.speed = 0
         if player.move: player.distance += player.speed
         if player.distance < 400 or player.distance > 2600 or player.move == 0:
             player.x += player.speed
@@ -102,6 +103,12 @@ class IdleState:
     def draw(player):
         if player.hitTimer != 0 and (int)(player.frame) % 2 == 0:
             player.image.clip_draw(0,0,0,0,player.x,player.y)
+        elif player.h == 40:
+            if player.idle_dir == 1: player.image.clip_draw(330, 500, player.w, player.h, player.x, player.y)
+            elif player.idle_dir == -1: player.image.clip_draw(300, 500, player.w, player.h, player.x, player.y)
+        elif player.h == 50:
+            if player.idle_dir == 1: player.image.clip_draw(330, 450, player.w, player.h, player.x, player.y)
+            elif player.idle_dir == -1: player.image.clip_draw(300, 450, player.w, player.h, player.x, player.y)
         else:
             if player.power == 0:
                 if player.idle_dir == 1: player.image.clip_draw(150, 0, player.w, player.h, player.x, player.y)
@@ -112,6 +119,7 @@ class IdleState:
             elif player.power == 2:
                 if player.idle_dir == 1: player.image.clip_draw(120, 600 - 240, player.w, player.h, player.x, player.y)
                 elif player.idle_dir == -1: player.image.clip_draw(60, 600 - 180, player.w, player.h, player.x, player.y)
+
 
 
 class RunState:
@@ -163,6 +171,12 @@ class RunState:
     def draw(player):
         if player.hitTimer != 0 and (int)(player.frame) % 2 == 0:
             player.image.clip_draw(0,0,0,0,player.x,player.y)
+        elif player.h == 40:
+            if player.idle_dir == 1: player.image.clip_draw(330, 500, player.w, player.h, player.x, player.y)
+            elif player.idle_dir == -1: player.image.clip_draw(300, 500, player.w, player.h, player.x, player.y)
+        elif player.h == 50:
+            if player.idle_dir == 1: player.image.clip_draw(330, 450, player.w, player.h, player.x, player.y)
+            elif player.idle_dir == -1: player.image.clip_draw(300, 450, player.w, player.h, player.x, player.y)
         else:
             if player.power == 0:
                 if player.dir == 1: player.image.clip_draw(180+30*(int)(player.frame), 60, player.w, player.h, player.x, player.y)
@@ -174,11 +188,44 @@ class RunState:
                 if player.idle_dir == 1: player.image.clip_draw(30 * (int)(player.frame), 600 - 240, player.w, player.h, player.x, player.y)
                 elif player.idle_dir == -1: player.image.clip_draw(270 - 30 * (int)(player.frame), 600 - 240, player.w, player.h, player.x, player.y)
 
+class SitState:
+    def enter(player, event):
+        player.speed = 0
+        player.gap = 0
+        player.accel = 0
+        player.jumping = 0
+        if player.h == 60:
+            player.h = 40
+        pass
+
+    def exit(player, event):
+        if player.h == 40:
+            player.h = 60
+            if player.gravity == 0:
+                player.y += 20
+        pass
+
+    def do(player):
+        if player.gravity != 0:
+            player.y -= player.gravity * 2
+        pass
+
+    def draw(player):
+        if player.idle_dir == -1:
+            if player.power == 0: player.image.clip_draw(360-60, 0, player.w, player.h, player.x, player.y)
+            elif player.power == 1:player.image.clip_draw(360-90, 600-40, player.w, player.h, player.x, player.y)
+            elif player.power == 2:player.image.clip_draw(600-30, 600-40, player.w, player.h, player.x, player.y)
+
+        elif player.idle_dir == 1:
+            if player.power == 0: player.image.clip_draw(360-30, 0, player.w, player.h, player.x, player.y)
+            elif player.power == 1:player.image.clip_draw(360-60, 600-40, player.w, player.h, player.x, player.y)
+            elif player.power == 2:player.image.clip_draw(360-60, 600-40, player.w, player.h, player.x, player.y)
+
+
 
 class EndState:
     def enter(player, event):
         player.gap = 0
-        player.speed = 0
         pass
 
     def exit(player, event):
@@ -237,16 +284,24 @@ class DeathState:
 next_state_table = {
     IdleState: {RIGHT_UP: RunState, LEFT_UP: RunState,
                 RIGHT_DOWN: RunState, LEFT_DOWN:RunState,
-                SPACE: IdleState, UP_DOWN: IdleState},
+                SPACE: IdleState, UP_DOWN: IdleState,
+                DOWN_DOWN: SitState, DOWN_UP: IdleState},
     RunState: {RIGHT_UP: IdleState, LEFT_UP: IdleState,
                LEFT_DOWN: IdleState, RIGHT_DOWN: IdleState,
-               SPACE: RunState, UP_DOWN: RunState},
+               SPACE: RunState, UP_DOWN: RunState,
+               DOWN_DOWN: SitState, DOWN_UP:RunState},
     EndState: {RIGHT_UP: EndState, LEFT_UP: EndState,
                LEFT_DOWN: EndState, RIGHT_DOWN: EndState,
-               SPACE: EndState, UP_DOWN: EndState},
-    DeathState: {RIGHT_UP: DeathState, LEFT_UP: DeathState,
+               SPACE: EndState, UP_DOWN: EndState,
+               DOWN_DOWN: EndState, DOWN_UP: EndState},
+    DeathState:{RIGHT_UP: DeathState, LEFT_UP: DeathState,
                LEFT_DOWN: DeathState, RIGHT_DOWN: DeathState,
-               SPACE: DeathState, UP_DOWN: DeathState}
+               SPACE: DeathState, UP_DOWN: DeathState,
+                DOWN_DOWN: DeathState, DOWN_UP: DeathState},
+    SitState:{RIGHT_UP: SitState, LEFT_UP: SitState,
+               LEFT_DOWN: SitState, RIGHT_DOWN: SitState,
+               SPACE: SitState, UP_DOWN: SitState,
+                DOWN_DOWN: SitState, DOWN_UP: IdleState}
 }
 
 
@@ -277,11 +332,12 @@ class Player:
         self.cur_state = IdleState
         self.cur_state.enter(self,None)
 
+
     def get_bb(self):
         if self.power == 0:
             return self.x-15, self.y - 15, self.x + 15, self.y + 15
         elif self.power == 1 or self.power == 2:
-            return self.x - 15, self.y - 30, self.x + 15, self.y + 30
+            return self.x - 15, self.y - self.h/2, self.x + 15, self.y + self.h/2
         elif self.power == 4:
             return -100,-100,-100,-100
         else:
@@ -316,7 +372,6 @@ class Player:
             elif self.h == 40 and 0.3 < time.time() - self.transTimer < 0.6: self.h = 50; self.y += 5
             elif self.h == 50 and 0.6 < time.time() - self.transTimer < 0.9: self.h = 60; self.y += 5
         if self.h == 60: self.trans = 0
-        print(self.h)
         
 
     def draw(self):
@@ -332,8 +387,7 @@ class Player:
 
     def fire_ball(self):
         if self.power == 2:
-            fireball = FireBall(self.x,self.y,self.idle_dir)
-            game_world.add_object(fireball,1)
+            pass
 
     def add_event(self, event):
         self.event_que.insert(0, event)
