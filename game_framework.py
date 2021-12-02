@@ -1,6 +1,11 @@
 from pico2d import *
 import time
 frame_time = 0.0
+running = None
+stack = None
+clear_level = 3
+cur_level = 0
+
 
 class GameState:
     def __init(self, state):
@@ -9,11 +14,6 @@ class GameState:
         self.handle_events = state.handle_events
         self.update = state.update
         self.draw = state.draw
-
-running = None
-stack = None
-clear_level = 1
-cur_level = 0
 
 
 def change_state(state):

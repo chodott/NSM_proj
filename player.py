@@ -57,6 +57,9 @@ key_event_table = {
 
 class IdleState:
     def enter(player, event):
+        if player.power == 0: player.h = 30
+        elif player.power ==1 or player.power == 2: player.h = 60
+
         if event == RIGHT_DOWN:
             player.dir += 1
             player.idle_dir = 1
@@ -124,6 +127,11 @@ class IdleState:
 
 class RunState:
     def enter(player, event):
+        if player.gravity == 0 and player.h == 40:
+            player.y += 20
+        if player.power == 0: player.h = 30
+        elif player.power ==1 or player.power == 2: player.h = 60
+
         if event == RIGHT_DOWN:
             player.dir += 1
             player.idle_dir = 1
@@ -199,20 +207,20 @@ class SitState:
         pass
 
     def exit(player, event):
-        if player.h == 40:
-            player.h = 60
-            if player.gravity == 0:
-                player.y += 20
         player.jumping = 0
         pass
 
     def do(player):
+        player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 5
         if player.gravity != 0:
             player.y -= player.gravity * 2
         pass
 
     def draw(player):
-        if player.idle_dir == -1:
+        if player.hitTimer != 0 and (int)(player.frame) % 2 == 0:
+            player.image.clip_draw(0,0,0,0,player.x,player.y)
+
+        elif player.idle_dir == -1:
             if player.power == 0: player.image.clip_draw(360-60, 0, player.w, player.h, player.x, player.y)
             elif player.power == 1:player.image.clip_draw(360-90, 600-40, player.w, player.h, player.x, player.y)
             elif player.power == 2:player.image.clip_draw(600-30, 600-40, player.w, player.h, player.x, player.y)
@@ -237,7 +245,7 @@ class EndState:
             player.y -= player.gravity /2
 
         else:
-            player.x += RUN_SPEED_PPS * game_framework.frame_time
+            player.x += RUN_SPEED_PPS * game_framework.frame_time * 2
             player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 4
 
     def draw(player):
@@ -292,7 +300,6 @@ next_state_table = {
                SPACE: RunState, UP_DOWN: RunState,
                DOWN_DOWN: SitState, DOWN_UP:RunState},
     EndState: {RIGHT_UP: EndState, LEFT_UP: EndState,
-
                LEFT_DOWN: EndState, RIGHT_DOWN: EndState,
                SPACE: EndState, UP_DOWN: EndState,
                DOWN_DOWN: EndState, DOWN_UP: EndState},
@@ -330,14 +337,15 @@ class Player:
         self.distance = 0
         self.onAir = 1
         self.hitTimer = 0
-        self.fbcnt = 0
-        self.fb = [FireBall() for i in range(10)]
+        self.sit = 0
         self.event_que = []
         self.cur_state = IdleState
         self.cur_state.enter(self,None)
 
 
     def get_bb(self):
+        if self.sit:
+            return self.x-15, self.y-20, self.x+15, self.y + 20
         if self.power == 0:
             return self.x-15, self.y - 15, self.x + 15, self.y + 15
         elif self.power == 1 or self.power == 2:
@@ -353,6 +361,11 @@ class Player:
         self.jumping = 1
         self.mark = self.y
         self.maxjump = 60
+
+    def meetwall(self):
+        self.x -= self.speed
+        self.accel = 0
+        self.move = 0
 
     def hit(self):
         if self.hitTimer == 0 and self.power > -1:

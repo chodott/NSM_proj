@@ -13,6 +13,7 @@ TIME_PER_ACTION = 0.5
 ACTION_PER_TIME = 1.0 / TIME_PER_ACTION
 FRAMES_PER_ACTION = 4
 
+
 class Block:
     image = None
     def __init__(self):
@@ -72,10 +73,16 @@ class Platform:
         return self.x-15, self.y-15, self.x+15, self.y+15
 
     def draw(self):
-        if self.case == 0:
-            self.image.clip_draw(30, 30, 30, 30, self.x, self.y)
-        elif self.case == 1:
-            self.image.clip_draw(30,0,30,30,self.x,self.y)
+        if game_framework.cur_level == 1:
+            if self.case == 0:
+                self.image.clip_draw(30, 30, 30, 30, self.x, self.y)
+            elif self.case == 1:
+                self.image.clip_draw(30,0,30,30,self.x,self.y)
+        elif game_framework.cur_level == 2:
+            if self.case == 0:
+                self.image.clip_draw(60, 30, 30, 30, self.x, self.y)
+            elif self.case == 1:
+                self.image.clip_draw(60,0,30,30,self.x,self.y)
 
     def update(self, speed):
         self.x += speed
@@ -159,7 +166,10 @@ class Background:
             Background.image = load_image('bg-grassland.png')
 
     def draw(self):
-        self.image.draw(self.x, self.y)
+        if game_framework.cur_level == 1:
+            self.image.clip_draw(0, 600, 3000, 600, self.x, self.y)
+        elif game_framework.cur_level == 2:
+            self.image.clip_draw(0, 0, 3000, 600, self.x, self.y)
 
     def update(self, speed):
         self.x += speed

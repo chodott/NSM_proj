@@ -119,6 +119,7 @@ def update():
     global boos
     global ui
     global gravity
+    global fb
 
     if player.trans == 1: #변신 중 건들기 없기
         player.upgrade()
@@ -126,7 +127,7 @@ def update():
     for game_object in game_world.all_objects():
         game_object.update(-player.gap)
 
-    if player.power == 3:
+    if player.power == 3: #토관 이동
         return
 
     for boo in boos:
@@ -176,12 +177,10 @@ def update():
 
                 break
             elif pipes[i].x <= player.x - 15 < pipes[i].x + 30:
-                player.x = pipes[i].x + 45
-                player.move = 0
+                player.meetwall()
                 break
             elif pipes[i].x - 30 <= player.x + 15 < pipes[i].x:
-                player.x = pipes[i].x - 45
-                player.move = 0
+                player.meetwall()
                 break
 
 
@@ -211,16 +210,14 @@ def update():
             if collide(troopa, ib):
                 troopa.stop()
         if collide(ib, player):
-            if player.y - player.h / 2 >= ib.y + 5:
+            if player.y - player.h / 2 >= ib.y + 10:
                 player.stop()
                 break
-            elif ib.x <= player.x - 15 <ib.x + 15:
-                player.x = ib.x + 30
-                player.move = 0
+            elif ib.x + 10 <= player.x - 15 <ib.x + 15:
+                player.meetwall()
                 break
-            elif ib.x - 15 <= player.x + 15 <ib.x:
-                player.x = ib.x - 30
-                player.move = 0
+            elif ib.x - 15 <= player.x + 15 <ib.x - 10:
+                player.meetwall()
                 break
             elif player.y + player.h/2 <= ib.y - 10 and player.jumping == 1:
                 if ib.broke != 1:
@@ -245,13 +242,11 @@ def update():
             if player.y - player.h / 2 >= nb.y + 10:
                 player.stop()
                 break
-            elif nb.x <= player.x - 15 < nb.x + 15:
-                player.x = nb.x + 30
-                player.move = 0
+            elif nb.x + 10 <= player.x - 15 < nb.x + 15:
+                player.meetwall()
                 break
-            elif nb.x - 15 <= player.x + 15 < nb.x:
-                player.x = nb.x - 30
-                player.move = 0
+            elif nb.x - 15 <= player.x + 15 < nb.x - 10:
+                player.meetwall()
                 break
             elif player.y + player.h/2 <= nb.y - 10 and player.jumping == 1:
                 if player.power >= 1:
@@ -265,14 +260,12 @@ def update():
         if collide(eb, player):
             if player.y - player.h / 2 >= eb.y + 10:
                 player.stop()
+
+            elif eb.x + 10 <= player.x - 15 <eb.x + 15:
+                player.meetwall()
                 break
-            elif eb.x <= player.x - 15 <eb.x + 15:
-                player.x = eb.x + 30 + 1
-                player.move = 0
-                break
-            elif eb.x - 15 <= player.x + 15 <eb.x:
-                player.x = eb.x - 30 - 1
-                player.move = 0
+            elif eb.x - 15 <= player.x + 15 <eb.x - 10:
+                player.meetwall()
                 break
 
 
@@ -409,4 +402,43 @@ def initialize():
         #코인
         for i in range(0, 4):
             coins[i].x, coins[i].y = i * 30 + 340, 80
+    elif game_framework.cur_level == 2:
+        goombas[0].x, goombas[0].y = 510, 100
+        goombas[1].x, goombas[1].y = 1000,100
+        goombas[2].x, goombas[2].y = 1250,100
+        goombas[3].x, goombas[3].y = 1280,100
+        #troopas[0].x, troopas[0].y = 400, 400
+        boos[0].x, boos[0].y = 400, 400
+        #아이템 블록 선언
+        for ib in ibs: ib.case = 1
+        ibs[0].x, ibs[0].y = 300, 150; ibs[1].x, ibs[1].y = 510, 270; ibs[2].x, ibs[2].y = 480, 150; ibs[3].x, ibs[3].y = 540, 150
+
+        #노말 블록 선언
+        nbs[0].x, nbs[0].y = 450, 150; nbs[1].x, nbs[1].y = 510,150; nbs[2].x, nbs[2].y = 570,150
+
+        #엔딩 블록
+        for eb in ebs:
+            eb.case = 2
+        cnt = 0
+        for i in range(1,8):
+            for j in range(9-i):
+                ebs[cnt].x, ebs[cnt].y = 2250 - 30 * j, 45 + i * 30
+                cnt += 1
+
+        #플랫폼
+        for i in range(0, 100):
+            grassTile1[i].case = 0
+            grassTile1[i].x, grassTile1[i].y = 15 +30 * i, 45
+        for i in range(100,200):
+            grassTile1[i].case = 1
+            grassTile1[i].x, grassTile1[i].y = 15 + 30 * (i-100), 15
+
+        #토관
+        pipes[0].x, pipes[0].y = 900, 90; pipes[0].active = 1
+        pipes[1].x, pipes[1].y = 1200, 105; pipes[1].h = 90
+        pipes[2].x, pipes[2].y = 1500, 120; pipes[2].h = 120; pipes[2].active = 1
+        #코인
+        for i in range(0, 4):
+            coins[i].x, coins[i].y = i * 30 + 340, 80
+
 
