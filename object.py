@@ -64,7 +64,7 @@ class Block:
 class Platform:
     image = None
     def __init__(self):
-        self.x, self.y = 50, 50
+        self.x, self.y = 0, 0
         if Platform.image == None:
             Platform.image = load_image('tiles.png')
         self.case = 0
@@ -137,7 +137,7 @@ class Item:
 class Coin:
     image = None
     def __init__(self):
-        self.x, self.y = -1, -1
+        self.x, self.y = 0, 0
         if Coin.image == None:
             Coin.image = load_image('coin.png')
         self.frame = 0
@@ -170,9 +170,11 @@ class Background:
             self.image.clip_draw(0, 600, 3000, 600, self.x, self.y)
         elif game_framework.cur_level == 2:
             self.image.clip_draw(0, 0, 3000, 600, self.x, self.y)
+        elif game_framework.cur_level == 4:
+            self.image.clip_draw(0, 0, 3000, 600, self.x, self.y)
 
     def update(self, speed):
-        self.x += speed
+        if game_framework.cur_level != 4: self.x += speed
         pass
 
 class Flag:
@@ -217,4 +219,17 @@ class Pipe:
 
     def update(self, speed):
         self.x += speed
+        pass
+
+class Arena:
+    def __init__(self):
+        self.x, self.y = 0, 0
+
+    def get_bb(self):
+        return self.x, self.y, self.x + 800, self.y + 100
+
+    def update(self, speed):
+        pass
+
+    def draw(self):
         pass

@@ -17,6 +17,8 @@ name = "MainState"
 
 player = None
 flag = None
+koopa = None
+arena = None
 items = []
 ibs = []
 nbs = []
@@ -42,9 +44,9 @@ def collide(a, b):
 
 def enter():
     global background, player
-    global ibs, nbs, ebs, grassTile1
+    global ibs, nbs, ebs, grassTile1, arena
     global coins, items, flag, pipes
-    global goombas, troopas, boos
+    global goombas, troopas, boos, koopa
     global ui
     #UI
     ui = UI(name)
@@ -85,8 +87,19 @@ def enter():
     flag = Flag()
     game_world.add_object(flag,1)
 
-    initialize()
+    #보스 방
+    if game_framework.cur_level == 4:
+        print("쿠파 등장")
+        koopa = Koopa()
+        arena = Arena()
+        game_world.add_object(koopa,1)
+        game_world.add_object(arena, 1)
 
+
+    initialize()
+    for o in game_world.all_objects():
+        if o.x == 0 and o.y == 0:
+            game_world.remove_object(o)
     pass
 
 
@@ -110,6 +123,7 @@ def exit():
     game_world.clear()
     pass
 
+
 def fail():
     pass
 
@@ -118,8 +132,6 @@ def update():
     global Life
     global boos
     global ui
-    global gravity
-    global fb
 
     if player.trans == 1: #변신 중 건들기 없기
         player.upgrade()
@@ -127,15 +139,13 @@ def update():
     for game_object in game_world.all_objects():
         game_object.update(-player.gap)
 
-    if player.power == 3: #토관 이동
-        return
-
     for boo in boos:
         boo.update(player.x, player.y, player.dir, player.idle_dir, -player.gap)
     ui.update()
     player.move = 1
     #중력 초기화
     player.gravity = GRAVITY_SPEED_PPS * game_framework.frame_time
+    if game_framework.cur_level ==4 : koopa.gravity = GRAVITY_SPEED_PPS * game_framework.frame_time
     for item in items:
         item.gravity = GRAVITY_SPEED_PPS * game_framework.frame_time
     for goomba in goombas:
@@ -197,6 +207,18 @@ def update():
         for item in items:
             if collide(grass, item):
                 item.stop()
+    if game_framework.cur_level == 4:
+        if collide(arena,player):
+            player.stop()
+        if collide(arena,koopa):
+            koopa.stop()
+            # 플레이어 적 충돌
+        if collide(player, koopa):
+            if player.y - player.h / 2 >= koopa.y + 20 and koopa.condition == 0:
+                player.attack()
+                koopa.hit()
+            else:
+                player.hit()
 
     #블록 충돌 체크
     for ib in ibs:
@@ -269,7 +291,6 @@ def update():
                 break
 
 
-    #플레이어 적 충돌
     for troopa in troopas:
         if collide(player, troopa):
             if player.y - player.h / 2 >= troopa.y + 10:
@@ -348,7 +369,7 @@ def update():
 
 
     #종료 조건
-    if player.x >= 700:
+    if player.x >= 700 and game_framework.cur_level != 4:
         game_framework.clear_level += 1
         game_framework.change_state(select_state)
 
@@ -365,10 +386,10 @@ def handle_events():
 
 def initialize():
     if game_framework.cur_level == 1:
-        goombas[0].x, goombas[0].y = 510, 100
-        goombas[1].x, goombas[1].y = 1000,100
-        goombas[2].x, goombas[2].y = 1250,100
-        goombas[3].x, goombas[3].y = 1280,100
+        goombas[0].x, goombas[0].y = 510, 120
+        goombas[1].x, goombas[1].y = 1000,120
+        goombas[2].x, goombas[2].y = 1250,120
+        goombas[3].x, goombas[3].y = 1280,10
         #troopas[0].x, troopas[0].y = 400, 400
         boos[0].x, boos[0].y = 400, 400
         #아이템 블록 선언
@@ -403,6 +424,45 @@ def initialize():
         for i in range(0, 4):
             coins[i].x, coins[i].y = i * 30 + 340, 80
     elif game_framework.cur_level == 2:
+        goombas[0].x, goombas[0].y = 510, 120
+        goombas[1].x, goombas[1].y = 1000,120
+        goombas[2].x, goombas[2].y = 1250,120
+        goombas[3].x, goombas[3].y = 1280,120
+        #troopas[0].x, troopas[0].y = 400, 400
+        boos[0].x, boos[0].y = 400, 400
+        #아이템 블록 선언
+        for ib in ibs: ib.case = 1
+        ibs[0].x, ibs[0].y = 300, 150; ibs[1].x, ibs[1].y = 510, 270; ibs[2].x, ibs[2].y = 480, 150; ibs[3].x, ibs[3].y = 540, 150
+
+        #노말 블록 선언
+        nbs[0].x, nbs[0].y = 450, 150; nbs[1].x, nbs[1].y = 510,150; nbs[2].x, nbs[2].y = 570,150
+
+        #엔딩 블록
+        for eb in ebs:
+            eb.case = 2
+        cnt = 0
+        for i in range(1,8):
+            for j in range(9-i):
+                ebs[cnt].x, ebs[cnt].y = 2250 - 30 * j, 45 + i * 30
+                cnt += 1
+
+        #플랫폼
+        for i in range(0, 100):
+            grassTile1[i].case = 0
+            grassTile1[i].x, grassTile1[i].y = 15 +30 * i, 45
+        for i in range(100,200):
+            grassTile1[i].case = 1
+            grassTile1[i].x, grassTile1[i].y = 15 + 30 * (i-100), 15
+
+        #토관
+        pipes[0].x, pipes[0].y = 900, 90; pipes[0].active = 1
+        pipes[1].x, pipes[1].y = 1200, 105; pipes[1].h = 90
+        pipes[2].x, pipes[2].y = 1500, 120; pipes[2].h = 120; pipes[2].active = 1
+        #코인
+        for i in range(0, 4):
+            coins[i].x, coins[i].y = i * 30 + 340, 80
+
+    elif game_framework.cur_level == 3:
         goombas[0].x, goombas[0].y = 510, 100
         goombas[1].x, goombas[1].y = 1000,100
         goombas[2].x, goombas[2].y = 1250,100

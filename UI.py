@@ -3,7 +3,7 @@ import time
 
 class UI:
     image = None
-    Life = 1
+    Life = 3
     def __init__(self, name):
         if UI.image == None:
             UI.image = load_image('ui.png')

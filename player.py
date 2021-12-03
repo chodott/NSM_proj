@@ -90,7 +90,9 @@ class IdleState:
         player.speed = (player.dir*RUN_SPEED_PPS + player.accel) * game_framework.frame_time
         if -0.1 < player.speed < 0.1: player.speed = 0
         if player.move: player.distance += player.speed
-        if player.distance < 400 or player.distance > 2600 or player.move == 0:
+        if game_framework.cur_level == 4:
+            player.x += player.speed
+        elif player.distance < 400 or player.distance > 2600 or player.move == 0:
             player.x += player.speed
             player.gap = 0
         else:
@@ -165,7 +167,9 @@ class RunState:
 
         player.speed = (player.dir*RUN_SPEED_PPS + player.accel) * game_framework.frame_time
         if player.move: player.distance += player.speed
-        if player.distance < 400 or player.distance > 2600 or player.move == 0:
+        if game_framework.cur_level == 4:
+            player.x += player.speed
+        elif player.distance < 400 or player.distance > 2600 or player.move == 0:
             player.x += player.speed
             player.gap = 0
         else:

@@ -200,5 +200,95 @@ class Boo:
             self.x = (1-t) * self.x + t * px
             self.y = (1-t) * self.y + t * py
 
+class Koopa:
+    image = None
+    def __init__(self):
+        if Koopa.image == None:
+            Koopa.image = load_image('koopa.png')
+        self.x, self.y = 600, 200
+        self.w, self.h = 100, 100
+        self.speed = RUN_SPEED_PPS * game_framework.frame_time
+        self.power = 0
+        self.dir = -1
+        self.frame = 0
+        self.condition = 0 #0 == idle 1 == attack
+        self.gravity = 0
+        self.timer = 0
+        self.hitTimer = 0
+
+    def get_bb(self):
+        if self.condition == 1:
+            if time.time() - self.timer <= 0.4: return self.x - 50, self.y - 50, self.x + 50, self.y + 50
+            else:
+                return self.x - 30, self.y - 30, self.x + 30, self.y + 30
+        else:
+            return self.x - 50, self.y - 50, self.x + 50, self.y + 50
+
+    def draw(self):
+        if (int)(self.hitTimer) != 0 and (int)(self.frame) % 2 == 0:
+            self.image.clip_draw(0,0,0,0,self.x,self.y)
+        elif self.condition == 0:
+            self.image.clip_draw((int)(self.frame) * 100, 0, 100, 100, self.x, self.y)
+        elif self.condition == 1:
+            if time.time() - self.timer <= 0.4: self.image.clip_draw(self.power*100, 100, 100, 100, self.x, self.y)
+            elif time.time() - self.timer <= 0.6: self.image.clip_draw(0, 200, 100, 100, self.x, self.y)
+            elif time.time() - self.timer <= 0.8: self.image.clip_draw(100, 200, 70, 70, self.x, self.y)
+            elif time.time() - self.timer <= 1.0: self.image.clip_draw(170, 200, 60, 60, self.x, self.y)
+            else: self.image.clip_draw((int)(self.frame) * 60 + 240, 200, 60, 60, self.x, self.y)
+        elif self.condition == 2:
+            self.image.clip_draw(0, 400, 100, 100, self.x, self.y)
+
+
+    def stop(self):
+        self.gravity = 0
+
+    def update(self,speed):
+        self.frame = (self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 6
+        if self.condition == 0: self.rest()
+        elif self.condition == 1: self.attack()
+        self.y -= self.gravity
+
+        #무적 처리
+        if time.time() - self.hitTimer >= 1.0:
+            self.hitTimer = 0
+        pass
+
+    def attack(self):
+        print("공격 접근")
+        if self.timer == 0: self.timer = time.time()
+        elif 1.0 < time.time() - self.timer <= 5:
+            self.x += self.speed * self.dir * 25
+            if 2 < time.time() - self.timer <= 3 and self.power > 1:
+                self.y += GRAVITY_SPEED_PPS * game_framework.frame_time * 2
+        elif time.time() - self.timer > 5:
+            self.condition = 0
+            self.y += 20
+            self.timer = 0
+        if self.x <= 30:
+            self.x = 50
+            self.dir = 1
+        elif self.x >= 770:
+            self.x = 750
+            self.dir = -1
+        #self.x = clamp(30,self.x, 770)
+
+    def rest(self):
+        print("휴식 중")
+        if self.timer == 0: self.timer = time.time()
+        elif time.time() - self.timer >= 2:
+            self.condition = 1
+            self.timer = 0
+
+    def hit(self):
+        print("아야")
+        if self.hitTimer == 0:
+            self.hitTimer = time.time()
+            self.power += 1
+
+
+
+
+
+
 
 
