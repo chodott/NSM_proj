@@ -29,6 +29,7 @@ coins = []
 goombas = []
 troopas = []
 boos = []
+aircraft = None
 
 
 def collide(a, b):
@@ -45,7 +46,7 @@ def collide(a, b):
 def enter():
     global background, player
     global ibs, nbs, ebs, grassTile1, arena
-    global coins, items, flag, pipes
+    global coins, items, flag, pipes, aircraft
     global goombas, troopas, boos, koopa
     global ui
     #UI
@@ -61,8 +62,8 @@ def enter():
     game_world.add_objects(items,1)
     #블럭
     ibs = [Block() for i in range(10)]
-    nbs = [Block() for i in range(3)]
-    ebs = [Block() for i in range(44)]
+    nbs = [Block() for i in range(30)]
+    ebs = [Block() for i in range(50)]
     game_world.add_objects(ibs, 1)
     game_world.add_objects(nbs, 1)
     game_world.add_objects(ebs, 1)
@@ -73,7 +74,7 @@ def enter():
     pipes = [Pipe() for i in range(3)]
     game_world.add_objects(pipes,1)
     #코인
-    coins = [Coin() for i in range(4)]
+    coins = [Coin() for i in range(8)]
     game_world.add_objects(coins, 1)
     #적
     goombas = [Goomba() for i in range(4)]
@@ -87,6 +88,11 @@ def enter():
     flag = Flag()
     game_world.add_object(flag,1)
 
+    #비행정
+    if game_framework.cur_level == 3 or game_framework.cur_level==2:
+        aircraft = Aircraft()
+        game_world.add_object(aircraft, 1)
+
     #보스 방
     if game_framework.cur_level == 4:
         print("쿠파 등장")
@@ -95,12 +101,8 @@ def enter():
         game_world.add_object(koopa,1)
         game_world.add_object(arena, 1)
 
-
     initialize()
-    for o in game_world.all_objects():
-        if o.x == 0 and o.y == 0:
-            game_world.remove_object(o)
-    pass
+
 
 
 def draw():
@@ -145,7 +147,8 @@ def update():
     player.move = 1
     #중력 초기화
     player.gravity = GRAVITY_SPEED_PPS * game_framework.frame_time
-    if game_framework.cur_level ==4 : koopa.gravity = GRAVITY_SPEED_PPS * game_framework.frame_time
+    if game_framework.cur_level == 4:
+        koopa.gravity = GRAVITY_SPEED_PPS * game_framework.frame_time
     for item in items:
         item.gravity = GRAVITY_SPEED_PPS * game_framework.frame_time
     for goomba in goombas:
@@ -207,7 +210,27 @@ def update():
         for item in items:
             if collide(grass, item):
                 item.stop()
-    if game_framework.cur_level == 4:
+
+    #3단계
+    if game_framework.cur_level == 3 or game_framework.cur_level == 2:
+        if collide(aircraft, player):
+            player.stop()
+            if game_framework.cur_level == 3:
+                aircraft.active = 1
+            elif game_framework.cur_level == 2:
+                player.y += aircraft.speed * 2
+        for item in items:
+            if collide(aircraft, item):
+                item.stop()
+        for goomba in goombas:
+            if collide(aircraft, goomba):
+                goomba.stop()
+        for troopa in troopas:
+            if collide(aircraft, troopa):
+                troopa.stop()
+
+    #4단계
+    elif game_framework.cur_level == 4:
         if collide(arena,player):
             player.stop()
         if collide(arena,koopa):
@@ -227,19 +250,13 @@ def update():
                 item.stop()
         for goomba in goombas:
             if collide(goomba, ib) and goomba.condition != -1:
-                goomba.stop()
+                goomba. stop()
         for troopa in troopas:
             if collide(troopa, ib):
                 troopa.stop()
         if collide(ib, player):
             if player.y - player.h / 2 >= ib.y + 10:
                 player.stop()
-                break
-            elif ib.x + 10 <= player.x - 15 <ib.x + 15:
-                player.meetwall()
-                break
-            elif ib.x - 15 <= player.x + 15 <ib.x - 10:
-                player.meetwall()
                 break
             elif player.y + player.h/2 <= ib.y - 10 and player.jumping == 1:
                 if ib.broke != 1:
@@ -248,6 +265,13 @@ def update():
                     items[ibs.index(ib)].hit()
                     ib.broke = 1;
                 player.jumping = 0
+                player.y -= JUMP_SPEED_PPS * game_framework.frame_time
+                break
+            elif ib.x + 10 <= player.x - 15 <ib.x + 15:
+                player.meetwall()
+                break
+            elif ib.x - 15 <= player.x + 15 <ib.x - 10:
+                player.meetwall()
                 break
 
     for nb in nbs:
@@ -263,13 +287,6 @@ def update():
         if collide(nb, player):
             if player.y - player.h / 2 >= nb.y + 10:
                 player.stop()
-                break
-            elif nb.x + 10 <= player.x - 15 < nb.x + 15:
-                player.meetwall()
-                break
-            elif nb.x - 15 <= player.x + 15 < nb.x - 10:
-                player.meetwall()
-                break
             elif player.y + player.h/2 <= nb.y - 10 and player.jumping == 1:
                 if player.power >= 1:
                     nb.broke = 1
@@ -277,18 +294,21 @@ def update():
                     game_world.remove_object(nb)
                 player.jumping = 0
                 break
+            elif nb.x + 10 <= player.x - 15 < nb.x + 15:
+                player.meetwall()
+            elif nb.x - 15 <= player.x + 15 < nb.x - 10:
+                player.meetwall()
 
     for eb in ebs:
         if collide(eb, player):
-            if player.y - player.h / 2 >= eb.y + 10:
+            if player.y - player.h / 2 >= eb.y + 12:
                 player.stop()
+            elif eb.x + 14 <= player.x - 15 <eb.x + 15:
+                player.meetwall()
 
-            elif eb.x + 10 <= player.x - 15 <eb.x + 15:
+            elif eb.x - 15 <= player.x + 15 <eb.x - 14:
                 player.meetwall()
-                break
-            elif eb.x - 15 <= player.x + 15 <eb.x - 10:
-                player.meetwall()
-                break
+
 
 
     for troopa in troopas:
@@ -385,51 +405,14 @@ def handle_events():
 
 
 def initialize():
+
+    #1단계 초기화
     if game_framework.cur_level == 1:
         goombas[0].x, goombas[0].y = 510, 120
         goombas[1].x, goombas[1].y = 1000,120
         goombas[2].x, goombas[2].y = 1250,120
-        goombas[3].x, goombas[3].y = 1280,10
-        #troopas[0].x, troopas[0].y = 400, 400
-        boos[0].x, boos[0].y = 400, 400
-        #아이템 블록 선언
-        for ib in ibs: ib.case = 1
-        ibs[0].x, ibs[0].y = 300, 150; ibs[1].x, ibs[1].y = 510, 270; ibs[2].x, ibs[2].y = 480, 150; ibs[3].x, ibs[3].y = 540, 150
-
-        #노말 블록 선언
-        nbs[0].x, nbs[0].y = 450, 150; nbs[1].x, nbs[1].y = 510,150; nbs[2].x, nbs[2].y = 570,150
-
-        #엔딩 블록
-        for eb in ebs:
-            eb.case = 2
-        cnt = 0
-        for i in range(1,8):
-            for j in range(9-i):
-                ebs[cnt].x, ebs[cnt].y = 2250 - 30 * j, 45 + i * 30
-                cnt += 1
-
-        #플랫폼
-        for i in range(0, 100):
-            grassTile1[i].case = 0
-            grassTile1[i].x, grassTile1[i].y = 15 +30 * i, 45
-        for i in range(100,200):
-            grassTile1[i].case = 1
-            grassTile1[i].x, grassTile1[i].y = 15 + 30 * (i-100), 15
-
-        #토관
-        pipes[0].x, pipes[0].y = 900, 90; pipes[0].active = 1
-        pipes[1].x, pipes[1].y = 1200, 105; pipes[1].h = 90
-        pipes[2].x, pipes[2].y = 1500, 120; pipes[2].h = 120; pipes[2].active = 1
-        #코인
-        for i in range(0, 4):
-            coins[i].x, coins[i].y = i * 30 + 340, 80
-    elif game_framework.cur_level == 2:
-        goombas[0].x, goombas[0].y = 510, 120
-        goombas[1].x, goombas[1].y = 1000,120
-        goombas[2].x, goombas[2].y = 1250,120
         goombas[3].x, goombas[3].y = 1280,120
-        #troopas[0].x, troopas[0].y = 400, 400
-        boos[0].x, boos[0].y = 400, 400
+
         #아이템 블록 선언
         for ib in ibs: ib.case = 1
         ibs[0].x, ibs[0].y = 300, 150; ibs[1].x, ibs[1].y = 510, 270; ibs[2].x, ibs[2].y = 480, 150; ibs[3].x, ibs[3].y = 540, 150
@@ -443,14 +426,20 @@ def initialize():
         cnt = 0
         for i in range(1,8):
             for j in range(9-i):
-                ebs[cnt].x, ebs[cnt].y = 2250 - 30 * j, 45 + i * 30
+                ebs[cnt].x, ebs[cnt].y = 2310 - 30 * j, 45 + i * 30
                 cnt += 1
 
         #플랫폼
-        for i in range(0, 100):
+        for i in range(0, 55):
             grassTile1[i].case = 0
             grassTile1[i].x, grassTile1[i].y = 15 +30 * i, 45
-        for i in range(100,200):
+        for i in range(65, 100):
+            grassTile1[i].case = 0
+            grassTile1[i].x, grassTile1[i].y = 15 +30 * i, 45
+        for i in range(100,155):
+            grassTile1[i].case = 1
+            grassTile1[i].x, grassTile1[i].y = 15 + 30 * (i-100), 15
+        for i in range(165,200):
             grassTile1[i].case = 1
             grassTile1[i].x, grassTile1[i].y = 15 + 30 * (i-100), 15
 
@@ -458,47 +447,111 @@ def initialize():
         pipes[0].x, pipes[0].y = 900, 90; pipes[0].active = 1
         pipes[1].x, pipes[1].y = 1200, 105; pipes[1].h = 90
         pipes[2].x, pipes[2].y = 1500, 120; pipes[2].h = 120; pipes[2].active = 1
+
         #코인
         for i in range(0, 4):
             coins[i].x, coins[i].y = i * 30 + 340, 80
 
+    #2단계 초기화
+    elif game_framework.cur_level == 2:
+
+        #적
+        goombas[0].x, goombas[0].y = 270, 120
+        goombas[1].x, goombas[1].y = 300, 120
+
+        # 플랫폼
+        for i in range(0, 30):
+            grassTile1[i].case = 0
+            grassTile1[i].x, grassTile1[i].y = 15 + 30 * i, 45
+        for i in range(65, 100):
+            grassTile1[i].case = 0
+            grassTile1[i].x, grassTile1[i].y = 15 + 30 * i, 45
+        for i in range(100, 130):
+            grassTile1[i].case = 1
+            grassTile1[i].x, grassTile1[i].y = 15 + 30 * (i - 100), 15
+        for i in range(165, 200):
+            grassTile1[i].case = 1
+            grassTile1[i].x, grassTile1[i].y = 15 + 30 * (i - 100), 15
+
+        # 아이템 블록 선언
+        for ib in ibs: ib.case = 1
+        ibs[0].x, ibs[0].y = 300, 150
+        ibs[1].x, ibs[1].y = 330, 150
+        ibs[2].x, ibs[2].y = 360, 150
+        ibs[3].x, ibs[3].y = 390, 150
+        ibs[4].x, ibs[4].y = 420, 150
+
+        #노말 블록
+        nbs[0].x, nbs[0].y = 30 * 33, 200; nbs[1].x, nbs[1].y = 30 * 33, 230; nbs[2].x, nbs[2].y = 30*33, 260
+        nbs[3].x, nbs[3].y = 30*34, 200; nbs[4].x, nbs[4].y = 30*35, 200; nbs[5].x, nbs[5].y = 30*36, 200
+        nbs[6].x, nbs[6].y = 30*36, 230; nbs[7].x, nbs[7].y = 30*36, 260; nbs[8].x, nbs[8].y = 30*37, 260;
+        nbs[9].x, nbs[9].y = 30*38, 260; nbs[10].x, nbs[10].y = 30*38, 230; nbs[11].x, nbs[11].y = 30*38, 200;
+        nbs[12].x, nbs[12].y = 30*39, 200; nbs[13].x, nbs[13].y = 30*40, 200; nbs[14].x, nbs[14].y = 30*41, 200;
+        nbs[15].x, nbs[15].y = 30*41, 230; nbs[16].x, nbs[16].y = 30*41, 260;
+
+        #코인
+        coins[0].x, coins[0].y = 30*34,230; coins[1].x, coins[1].y = 30*34,260; coins[2].x, coins[2].y = 30*35,260;
+        coins[3].x, coins[3].y = 30 * 35, 230; coins[4].x, coins[4].y = 30*39, 230; coins[5].x, coins[5].y = 30*39, 260
+        coins[6].x, coins[6].y = 30 * 40, 230; coins[7].x, coins[7].y = 30*40, 260
+
+        #비행정
+        aircraft.active = 2; aircraft.x, aircraft.y = 30 * 58, 200
+
+        # 엔딩 블록
+        for eb in ebs:
+            eb.case = 2
+        cnt = 0
+        for i in range(1, 8):
+            for j in range(9 - i):
+                ebs[cnt].x, ebs[cnt].y = 2310 - 30 * j, 45 + i * 30
+                cnt += 1
+        for i in range(4,7):
+            for j in range(i):
+                ebs[cnt].x, ebs[cnt].y = 300 + 90*i, 45 + j * 30
+                cnt += 1
+        pass
+
+    #3단계 초기화
     elif game_framework.cur_level == 3:
-        goombas[0].x, goombas[0].y = 510, 100
-        goombas[1].x, goombas[1].y = 1000,100
-        goombas[2].x, goombas[2].y = 1250,100
-        goombas[3].x, goombas[3].y = 1280,100
-        #troopas[0].x, troopas[0].y = 400, 400
-        boos[0].x, boos[0].y = 400, 400
-        #아이템 블록 선언
+
+        #적
+        troopas[0].x, troopas[0].y, troopas[0].condition = 30 * 30, 100, 2
+        troopas[1].x, troopas[1].y, troopas[1].condition = 30 * 35, 150, 2
+
+        #플랫폼
+        for i in range(0, 30):
+            grassTile1[i].case = 0
+            grassTile1[i].x, grassTile1[i].y = 2115 + 30 * i, 45
+        for i in range(100, 130):
+            grassTile1[i].case = 1
+            grassTile1[i].x, grassTile1[i].y = 2115 + 30 * (i - 100), 15
+
+        #아이템 블록
         for ib in ibs: ib.case = 1
-        ibs[0].x, ibs[0].y = 300, 150; ibs[1].x, ibs[1].y = 510, 270; ibs[2].x, ibs[2].y = 480, 150; ibs[3].x, ibs[3].y = 540, 150
+        ibs[0].x, ibs[0].y = 30 * 5, 200
 
-        #노말 블록 선언
-        nbs[0].x, nbs[0].y = 450, 150; nbs[1].x, nbs[1].y = 510,150; nbs[2].x, nbs[2].y = 570,150
+        #노멀 블록
+        nbs[0].x, nbs[0].y = 30 * 10, 165; nbs[1].x, nbs[1].y = 30 * 10, 195
+        nbs[2].x, nbs[2].y = 30 * 13, 255; nbs[3].x, nbs[3].y = 30 * 13, 285;
+        nbs[4].x, nbs[4].y = 30 * 16, 345; nbs[5].x, nbs[5].y = 30 * 16, 375;
+        nbs[6].x, nbs[6].y = 30 * 19, 405; nbs[7].x, nbs[7].y = 30 * 19, 435;
+        nbs[8].x, nbs[8].y = 30 * 22, 435; nbs[9].x, nbs[9].y = 30 * 22, 465;
+        cnt = 10
+        for i in range(12):
+            nbs[cnt].x, nbs[cnt].y = 30 * 25, 150 + i * 30
+            cnt += 1
 
-        #엔딩 블록
+
+        #비행정
+        aircraft.x, aircraft.y, aircraft.w = 190, 100, 390
+
+        # 엔딩 블록
         for eb in ebs:
             eb.case = 2
         cnt = 0
-        for i in range(1,8):
-            for j in range(9-i):
-                ebs[cnt].x, ebs[cnt].y = 2250 - 30 * j, 45 + i * 30
+        for i in range(1, 8):
+            for j in range(9 - i):
+                ebs[cnt].x, ebs[cnt].y = 2325 - 30 * j, 45 + i * 30
                 cnt += 1
-
-        #플랫폼
-        for i in range(0, 100):
-            grassTile1[i].case = 0
-            grassTile1[i].x, grassTile1[i].y = 15 +30 * i, 45
-        for i in range(100,200):
-            grassTile1[i].case = 1
-            grassTile1[i].x, grassTile1[i].y = 15 + 30 * (i-100), 15
-
-        #토관
-        pipes[0].x, pipes[0].y = 900, 90; pipes[0].active = 1
-        pipes[1].x, pipes[1].y = 1200, 105; pipes[1].h = 90
-        pipes[2].x, pipes[2].y = 1500, 120; pipes[2].h = 120; pipes[2].active = 1
-        #코인
-        for i in range(0, 4):
-            coins[i].x, coins[i].y = i * 30 + 340, 80
 
 

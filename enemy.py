@@ -28,7 +28,7 @@ class Goomba:
     def __init__(self):
         if Goomba.image == None:
             Goomba.image = load_image('goomba.png')
-        self.x, self.y = -10,-10
+        self.x, self.y = 0,0
         self.w, self.h = 30,30
         self.speed = RUN_SPEED_PPS * game_framework.frame_time
         self.gravity = 5
@@ -82,14 +82,14 @@ class Troopa:
     def __init__(self):
         if Troopa.image == None:
             Troopa.image = load_image('troopa.png')
-        self.x, self.y = -10, -10
+        self.x, self.y = 0, 0
         self.w, self.h = 30, 50
         self.dir = -1
         self.speed = RUN_SPEED_PPS * game_framework.frame_time
         self.gravity = 1
         self.frame = 0
         self.condition = 1 #0 : 등껍질 1: 정상 2: 날개
-        self.boundary = 400
+        self.goal = 200
 
     def get_bb(self):
         if self.condition == 0:
@@ -105,7 +105,8 @@ class Troopa:
     def hit(self, px):
         if self.condition > 0:
             self.condition -= 1
-            self.frame = 0
+            if self.condition == 0:
+                self.frame = 0
         if self.condition == 0 and self.speed == 0:
             self.speed = RUN_SPEED_PPS * game_framework.frame_time * 5
             if px > self.x: self.dir = -1
@@ -130,8 +131,6 @@ class Troopa:
 
 
     def update(self, speed):
-        self.y -= self.gravity
-        self.x += speed
         if self.condition == 0:
             self.x += self.speed * self.dir
             self.h = 30
@@ -142,11 +141,16 @@ class Troopa:
             self.x += self.speed * self.dir
             self.frame = (self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 13
         elif self.condition == 2:
-            if self.y >= self.boundary:
-                self.boundary = 0
-            elif self.y <= self.boundary:
-                self.boundary = 400
-                self.y += 3
+            self.gravity = 0
+            self.frame = (self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 13
+            if self.y <= self.goal:
+                self.goal = 300
+                self.y += game_framework.frame_time * GRAVITY_SPEED_PPS / 2
+            elif self.y >= self.goal:
+                self.goal = 150
+                self.y -= game_framework.frame_time * GRAVITY_SPEED_PPS / 2
+        self.y -= self.gravity
+        self.x += speed
 
 
 class Boo:
@@ -154,7 +158,7 @@ class Boo:
     def __init__(self):
         if Boo.image == None:
             Boo.image = load_image('ghost.png')
-        self.x, self.y = -10, -10
+        self.x, self.y = 0, 0
         self.w, self.h = 30, 30
         self.dir = -1
         self.speed = 2

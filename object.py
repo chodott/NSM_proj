@@ -73,7 +73,7 @@ class Platform:
         return self.x-15, self.y-15, self.x+15, self.y+15
 
     def draw(self):
-        if game_framework.cur_level == 1:
+        if game_framework.cur_level == 1 or game_framework.cur_level == 3:
             if self.case == 0:
                 self.image.clip_draw(30, 30, 30, 30, self.x, self.y)
             elif self.case == 1:
@@ -166,12 +166,7 @@ class Background:
             Background.image = load_image('bg-grassland.png')
 
     def draw(self):
-        if game_framework.cur_level == 1:
-            self.image.clip_draw(0, 600, 3000, 600, self.x, self.y)
-        elif game_framework.cur_level == 2:
-            self.image.clip_draw(0, 0, 3000, 600, self.x, self.y)
-        elif game_framework.cur_level == 4:
-            self.image.clip_draw(0, 0, 3000, 600, self.x, self.y)
+        self.image.clip_draw(0,2400 - 600*game_framework.cur_level, 3000, 600, self.x, self.y)
 
     def update(self, speed):
         if game_framework.cur_level != 4: self.x += speed
@@ -232,4 +227,38 @@ class Arena:
         pass
 
     def draw(self):
+        pass
+
+
+class Aircraft:
+    image = None
+    def __init__(self):
+        if Aircraft.image == None:
+            Aircraft.image = load_image('aircraft.png')
+        self.x, self.y = 0,0
+        self.w = 390
+        self.active = 0
+        self.speed = RUN_SPEED_PPS * game_framework.frame_time
+        self.boundary = 1740
+        self.distance = 0
+
+    def get_bb(self):
+        return self.x - self.w/2, self.y-15, self.x + self.w/2, self.y + 15
+
+    def update(self, speed):
+        self.x += speed
+        if self.active == 2:
+            self.y += self.speed * 2
+            if self.y >= 600: self.y = 0
+        elif self.active == 1:
+
+            if self.distance > self.boundary:
+                self.y -= self.speed * 2
+            else:
+                self.x += self.speed
+                self.distance += self.speed
+        pass
+
+    def draw(self):
+        self.image.clip_draw(0,370,390,30,self.x,self.y)
         pass

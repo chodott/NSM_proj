@@ -92,7 +92,10 @@ class IdleState:
         if player.move: player.distance += player.speed
         if game_framework.cur_level == 4:
             player.x += player.speed
-        elif player.distance < 400 or player.distance > 2600 or player.move == 0:
+        elif player.move == 0:
+            player.x += player.speed
+            player.gap = 0
+        elif player.distance < 400 or player.distance > 2600:
             player.x += player.speed
             player.gap = 0
         else:
@@ -367,7 +370,7 @@ class Player:
         self.maxjump = 60
 
     def meetwall(self):
-        self.x -= self.speed
+        self.x -= self.speed * 2
         self.accel = 0
         self.move = 0
 
