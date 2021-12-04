@@ -51,8 +51,10 @@ class Goomba:
     def stop(self):
         self.gravity = 0
 
-    def update(self, speed):
-        self.x += speed
+    def update(self):
+        self.gravity = GRAVITY_SPEED_PPS * game_framework.frame_time
+        self.x += -server.player.gap
+        self.collide_check()
         if self.condition == 1:
             if time.time() - self.deathtime > 1:
                 self.x, self.y = -10, -10
@@ -74,6 +76,46 @@ class Goomba:
 
         elif type == 1:
             self.condition = -1
+
+    def collide_check(self):
+
+        for grass in server.grassTile1:
+            if server.collide(self, grass):
+                self.stop()
+
+        for pipe in server.pipes:
+            if server.collide(self, pipe):
+                if self.y - 15 >= pipe.y + 10:
+                    self.stop()
+                elif pipe.x <= self.x - 15 < pipe.x + 30:
+                    self.dir = 1
+                    self.x = pipe.x + 45
+                elif pipe.x - 40 <= self.x + 15 < pipe.x:
+                    self.dir = -1
+                    self.x = pipe.x - 45
+
+        for ib in server.ibs:
+            if server.collide(self, ib) and self.condition != -1:
+                self.stop()
+                break
+
+        for nb in server.nbs:
+            if server.collide(self, nb) and self.condition != -1:
+                self.stop()
+                break
+
+        for eb in server.ebs:
+            if server.collide(self, eb) and self.condition != -1:
+                self.stop()
+                break
+
+        if game_framework.cur_level == 2 or game_framework.cur_level == 3:
+            if server.collide(self, server.aircraft):
+                self.stop()
+
+        for troopa in server.troopas:
+            if server.collide(self, troopa):
+                self.hit(1)
 
 
 
@@ -130,7 +172,9 @@ class Troopa:
             self.image.clip_draw(0, 800 - 50 - (int)(self.frame) * 50, self.w, self.h, self.x, self.y);
 
 
-    def update(self, speed):
+    def update(self):
+        self.gravity = GRAVITY_SPEED_PPS * game_framework.frame_time
+        self.collide_check()
         if self.condition == 0:
             self.x += self.speed * self.dir
             self.h = 30
@@ -150,7 +194,47 @@ class Troopa:
                 self.goal = 150
                 self.y -= game_framework.frame_time * GRAVITY_SPEED_PPS / 2
         self.y -= self.gravity
-        self.x += speed
+        self.x += -server.player.gap
+
+    def collide_check(self):
+
+        for grass in server.grassTile1:
+            if server.collide(self, grass):
+                self.stop()
+
+        for pipe in server.pipes:
+            if server.collide(self, pipe):
+                if self.y - 15 >= pipe.y + 10:
+                    self.stop()
+                elif pipe.x <= self.x - 15 < pipe.x + 30:
+                    self.dir = 1
+                    self.x = pipe.x + 45
+                elif pipe.x - 40 <= self.x + 15 < pipe.x:
+                    self.dir = -1
+                    self.x = pipe.x - 45
+
+        for ib in server.ibs:
+            if server.collide(self, ib) and self.condition != -1:
+                self.stop()
+                break
+
+        for nb in server.nbs:
+            if server.collide(self, nb) and self.condition != -1:
+                self.stop()
+                break
+
+        for eb in server.ebs:
+            if server.collide(self, eb) and self.condition != -1:
+                self.stop()
+                break
+
+        if game_framework.cur_level == 2 or game_framework.cur_level == 3:
+            if server.collide(self, server.aircraft):
+                self.stop()
+
+        for troopa in server.troopas:
+            if server.collide(self, troopa) and self != troopa:
+                self.hit(1)
 
 
 class Boo:
@@ -215,7 +299,7 @@ class Koopa:
         self.power = 0
         self.dir = -1
         self.frame = 0
-        self.condition = 0 #0 == idle 1 == attack
+        self.condition = 0 #0 == idle 1 == attack 2 == death
         self.gravity = 0
         self.timer = 0
         self.hitTimer = 0
@@ -246,10 +330,14 @@ class Koopa:
     def stop(self):
         self.gravity = 0
 
-    def update(self,speed):
+    def update(self):
         self.frame = (self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 6
+        self.gravity = GRAVITY_SPEED_PPS * game_framework.frame_time
+        if self.condition != 2:
+            self.collide_check()
         if self.condition == 0: self.rest()
         elif self.condition == 1: self.attack()
+        elif self.condition == 2: pass
         self.y -= self.gravity
 
         #무적 처리
@@ -258,8 +346,11 @@ class Koopa:
         pass
 
     def attack(self):
-        print("공격 접근")
-        if self.timer == 0: self.timer = time.time()
+        if self.timer == 0:
+            self.timer = time.time()
+            if server.player.x < self.x:
+                self.dir = -1
+            else: self.dir = 1
         elif 1.0 < time.time() - self.timer <= 5:
             self.x += self.speed * self.dir * 25
             if 2 < time.time() - self.timer <= 3 and self.power > 1:
@@ -274,21 +365,23 @@ class Koopa:
         elif self.x >= 770:
             self.x = 750
             self.dir = -1
-        #self.x = clamp(30,self.x, 770)
 
     def rest(self):
-        print("휴식 중")
         if self.timer == 0: self.timer = time.time()
         elif time.time() - self.timer >= 2:
             self.condition = 1
             self.timer = 0
 
     def hit(self):
-        print("아야")
         if self.hitTimer == 0:
             self.hitTimer = time.time()
             self.power += 1
+        if self.power == 3:
+            self.condition = 2
 
+    def collide_check(self):
+        if server.collide(self,server.arena):
+            self.stop()
 
 
 

@@ -5,6 +5,12 @@ running = None
 stack = None
 clear_level = 4
 cur_level = 0
+Life = 3
+PIXEL_PER_METER = (10.0 / 0.3)
+GRAVITY_SPEED_KMPH = 35.0
+GRAVITY_SPEED_MPM = (GRAVITY_SPEED_KMPH * 1000.0 / 60.0)
+GRAVITY_SPEED_MPS = (GRAVITY_SPEED_MPM / 60.0)
+GRAVITY_SPEED_PPS = (GRAVITY_SPEED_MPS * PIXEL_PER_METER)
 
 
 class GameState:

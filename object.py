@@ -1,6 +1,7 @@
 from pico2d import *
 from random import *
 import game_framework
+import server
 
 PIXEL_PER_METER = (10.0 / 0.3)
 RUN_SPEED_KMPH = 10.0
@@ -54,8 +55,8 @@ class Block:
         else:
             self.image.clip_draw(0, 0, 30, 30, self.x, self.y)
 
-    def update(self, speed):
-        self.x += speed
+    def update(self):
+        self.x += -server.player.gap
         self.frame = (self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 12
 
     pass
@@ -84,8 +85,8 @@ class Platform:
             elif self.case == 1:
                 self.image.clip_draw(60,0,30,30,self.x,self.y)
 
-    def update(self, speed):
-        self.x += speed
+    def update(self):
+        self.x += -server.player.gap
         pass
 
 
@@ -119,7 +120,9 @@ class Item:
         elif self.case == 1:
             self.image.clip_draw(0,0,30,30,self.x,self.y)
 
-    def update(self, speed):
+    def update(self):
+        self.gravity = game_framework.GRAVITY_SPEED_PPS * game_framework.frame_time
+        self.collide_check()
         if self.show and self.y < self.maxh: self.y += RUN_SPEED_PPS * game_framework.frame_time
         elif self.show and self.y > self.maxh: self.y = self.maxh; self.active = 1
         if self.case == 0 and self.direction == -1: self.direction = randint(0,1)
@@ -129,7 +132,45 @@ class Item:
             elif self.direction == 1:
                 self.x += RUN_SPEED_PPS * game_framework.frame_time
             self.y -= self.gravity
-        self.x += speed
+        self.x += -server.player.gap
+
+    def collide_check(self):
+
+        # 토관 충돌
+        for pipe in server.pipes:
+            if server.collide(self, pipe):
+                if self.y - 15 >= pipe.y + 10:
+                    self.stop()
+                elif pipe.x <= self.x - 15 < pipe.x + 30:
+                    self.dir = 1
+                    self.x = pipe.x + 45
+                elif pipe.x - 40 <= self.x + 15 < pipe.x:
+                    self.dir = -1
+                    self.x = pipe.x - 45
+
+        for grass in server.grassTile1:
+            if server.collide(self, grass):
+                self.stop()
+
+        for ib in server.ibs:
+            if server.collide(self, ib):
+                self.stop()
+                break
+
+        for nb in server.nbs:
+            if server.collide(self, nb):
+                self.stop()
+                break
+
+        for eb in server.ebs:
+            if server.collide(self, eb):
+                self.stop()
+                break
+
+        if game_framework.cur_level == 2 or game_framework.cur_level == 3:
+            if server.collide(self, server.aircraft):
+                self.stop()
+
 
     pass
 
@@ -153,8 +194,8 @@ class Coin:
         elif 4<=self.frame <6:
             self.image.clip_draw(60, 0, 30, 30, self.x, self.y)
 
-    def update(self, speed):
-        self.x += speed
+    def update(self):
+        self.x += -server.player.gap
         self.frame = (self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 6
 
 
@@ -168,8 +209,8 @@ class Background:
     def draw(self):
         self.image.clip_draw(0,2400 - 600*game_framework.cur_level, 3000, 600, self.x, self.y)
 
-    def update(self, speed):
-        if game_framework.cur_level != 4: self.x += speed
+    def update(self):
+        if game_framework.cur_level != 4: self.x += -server.player.gap
         pass
 
 class Flag:
@@ -183,13 +224,14 @@ class Flag:
     def get_bb(self):
         if self.condi == 0:
             return self.x-15, self.y-105, self.x+15, self.y+105
-        else: return 0,0,0,0
+        else:
+            return 0,0,0,0
 
     def draw(self):
         self.image.draw(self.x, self.y)
 
-    def update(self, speed):
-        self.x += speed
+    def update(self):
+        self.x += -server.player.gap
         pass
 
 class Pipe:
@@ -212,8 +254,8 @@ class Pipe:
         elif self.h == 120:
             self.image.clip_draw(120, 0, 60, 120, self.x, self.y)
 
-    def update(self, speed):
-        self.x += speed
+    def update(self):
+        self.x += -server.player.gap
         pass
 
 class Arena:
@@ -223,7 +265,7 @@ class Arena:
     def get_bb(self):
         return self.x, self.y, self.x + 800, self.y + 100
 
-    def update(self, speed):
+    def update(self):
         pass
 
     def draw(self):
@@ -245,8 +287,8 @@ class Aircraft:
     def get_bb(self):
         return self.x - self.w/2, self.y-15, self.x + self.w/2, self.y + 15
 
-    def update(self, speed):
-        self.x += speed
+    def update(self):
+        self.x += -server.player.gap
         if self.active == 2:
             self.y += self.speed * 2
             if self.y >= 600: self.y = 0

@@ -1,7 +1,6 @@
 from pico2d import *
 import game_framework
 import start_state
-from UI import *
 
 name = "OverState"
 
@@ -38,7 +37,7 @@ def handle_events():
         elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_ESCAPE):
             game_framework.quit()
         elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_SPACE):
-            UI.Life = 3
+            game_framework.Life = 3
             game_framework.change_state(start_state)
 
     pass

@@ -1,9 +1,11 @@
 from pico2d import *
 import time
 
+import game_framework
+
+
 class UI:
     image = None
-    Life = 3
     def __init__(self, name):
         if UI.image == None:
             UI.image = load_image('ui.png')
@@ -14,7 +16,7 @@ class UI:
         self.time = time.time()
 
     def update(self):
-        self.value = UI.Life
+        self.value = game_framework.Life
         if self.alarm > 0 and self.pos == "MainState":
             self.alarm = 400 - (int)(time.time()-self.time)
 
