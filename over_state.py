@@ -38,6 +38,7 @@ def handle_events():
             game_framework.quit()
         elif (event.type, event.key) == (SDL_KEYDOWN, SDLK_SPACE):
             game_framework.Life = 3
+            game_framework.Coin = 0
             game_framework.change_state(start_state)
 
     pass

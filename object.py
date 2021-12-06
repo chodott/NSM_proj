@@ -2,6 +2,7 @@ from pico2d import *
 from random import *
 import game_framework
 import server
+import time
 
 PIXEL_PER_METER = (10.0 / 0.3)
 RUN_SPEED_KMPH = 10.0
@@ -98,11 +99,12 @@ class Item:
         self.x, self.y = -10, -10
         self.gravity = 1
         self.case = 0
-        self.direction = -1
+        self.dir = 1
         self.onAir = 1
         self.active = 0
         self.show = 0
         self.maxh = 0
+        self.timer = 0
 
     def get_bb(self):
         return self.x-15, self.y-15, self.x+15, self.y+15
@@ -113,29 +115,51 @@ class Item:
     def hit(self):
         self.show = 1
         self.maxh = self.y+30
+        if server.player.power < 1:
+            self.case = 0
+        else: self.case = 1
 
     def draw(self):
-        if self.case == 0:
-            self.image.clip_draw(0,30,30,30,self.x,self.y)
-        elif self.case == 1:
-            self.image.clip_draw(0,0,30,30,self.x,self.y)
+        if self.show == 1:
+            if self.case == 0:
+                self.image.clip_draw(0,30,30,30,self.x,self.y)
+            elif self.case == 1:
+                self.image.clip_draw(0,0,30,30,self.x,self.y)
+            elif self.case == 2:
+                self.image.clip_draw(30, 0, 30, 30, self.x, self.y)
 
     def update(self):
-        self.gravity = game_framework.GRAVITY_SPEED_PPS * game_framework.frame_time
-        self.collide_check()
-        if self.show and self.y < self.maxh: self.y += RUN_SPEED_PPS * game_framework.frame_time
-        elif self.show and self.y > self.maxh: self.y = self.maxh; self.active = 1
-        if self.case == 0 and self.direction == -1: self.direction = randint(0,1)
-        if self.active == 1 and self.case == 0:
-            if self.direction == 0:
-                self.x -= RUN_SPEED_PPS * game_framework.frame_time
-            elif self.direction == 1:
-                self.x += RUN_SPEED_PPS * game_framework.frame_time
-            self.y -= self.gravity
+        if self.active == 1:
+            self.gravity = game_framework.GRAVITY_SPEED_PPS * game_framework.frame_time
+            self.collide_check()
+            if self.case == 0:
+                if self.dir == -1:
+                    self.x -= RUN_SPEED_PPS * game_framework.frame_time
+                elif self.dir == 1:
+                    self.x += RUN_SPEED_PPS * game_framework.frame_time
+                self.y -= self.gravity
+            elif self.case == 2:
+                if self.gravity != 0:
+                    self.y -= self.gravity
+                else:
+                    if self.dir == -1:
+                        self.x -= RUN_SPEED_PPS * game_framework.frame_time
+                    elif self.dir == 1:
+                        self.x += RUN_SPEED_PPS * game_framework.frame_time
+        else:
+            if self.case == 2:
+                self.show = 1
+                self.x, self.y = server.player.x, 585
+                if time.time() - self.timer > 2:
+                    self.active = 1; self.timer = 0
+            else:
+                if self.show and self.y < self.maxh:
+                    self.y += RUN_SPEED_PPS * game_framework.frame_time
+                elif self.show and self.y > self.maxh:
+                    self.y = self.maxh; self.active = 1
         self.x += -server.player.gap
 
     def collide_check(self):
-
         # 토관 충돌
         for pipe in server.pipes:
             if server.collide(self, pipe):
@@ -151,6 +175,7 @@ class Item:
         for grass in server.grassTile1:
             if server.collide(self, grass):
                 self.stop()
+                break
 
         for ib in server.ibs:
             if server.collide(self, ib):
@@ -159,8 +184,16 @@ class Item:
 
         for nb in server.nbs:
             if server.collide(self, nb):
-                self.stop()
-                break
+                if self.y - 15 >= nb.y + 10:
+                    self.stop()
+                elif nb.x <= self.x - 15 < nb.x + 15:
+                    self.dir = 1
+                    self.x = nb.x + 30
+
+                elif nb.x - 15 <= self.x + 15 < nb.x:
+                    self.dir = -1
+                    self.x = nb.x - 30
+
 
         for eb in server.ebs:
             if server.collide(self, eb):

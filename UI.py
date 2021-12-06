@@ -2,6 +2,7 @@ from pico2d import *
 import time
 
 import game_framework
+import server
 
 
 class UI:
@@ -17,8 +18,13 @@ class UI:
 
     def update(self):
         self.value = game_framework.Life
+        self.coin = game_framework.Coin
         if self.alarm > 0 and self.pos == "MainState":
             self.alarm = 400 - (int)(time.time()-self.time)
+        if game_framework.Coin == 10:
+            server.items[9].case = 2
+            server.items[9].timer = time.time()
+            game_framework.Coin -= 10
 
     def draw(self):
         #life 출력

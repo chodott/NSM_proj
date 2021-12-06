@@ -119,6 +119,7 @@ class IdleState:
                 player.y += JUMP_SPEED_PPS * game_framework.frame_time
         player.y -= player.gravity
         if time.time() - player.hitTimer > 2: player.hitTimer = 0
+        player.x = clamp(15, player.x, 775)
         player.death_check()
 
     def draw(player):
@@ -197,6 +198,7 @@ class RunState:
             else: player.y += JUMP_SPEED_PPS * game_framework.frame_time
         player.y -= player.gravity
         if time.time() - player.hitTimer > 2: player.hitTimer = 0
+        player.x = clamp(15,player.x,775)
         player.death_check()
 
     def draw(player):
@@ -408,6 +410,8 @@ class Player:
         elif type == 1:
             self.power = 2
             self.trans = 1
+        elif type == 2:
+            game_framework.Life += 1
         if type == -1:
             if self.h == 30 and time.time() - self.transTimer < 0.3: self.h = 40; self.y += 5
             elif self.h == 40 and 0.3 < time.time() - self.transTimer < 0.6: self.h = 50; self.y += 5
@@ -427,6 +431,9 @@ class Player:
             # 아레나 충돌
             if server.collide(self, server.arena):
                 self.stop()
+
+            if self.x <= 15 or self.x >= 775:
+                self.accel = 0
         else:
             #깃발 충돌
             if server.collide(self, server.flag):
@@ -495,7 +502,7 @@ class Player:
                 if server.collide(self, nb):
                     if self.y - self.h / 2 >= nb.y + 10:
                         self.stop()
-                        break
+
                     elif self.y + self.h / 2 <= nb.y - 10 and (self.jumping == 1 or jumped):
                         if self.power >= 1:
                             nb.broke = 1
@@ -505,10 +512,11 @@ class Player:
                         break
                     elif nb.x + 10 <= self.x - 15 < nb.x + 15:
                         self.meetwall()
-                        break
+
                     elif nb.x - 15 <= self.x + 15 < nb.x - 10:
                         self.meetwall()
-                        break
+
+
 
             #엔딩 블록 충돌
             for eb in server.ebs:
@@ -551,7 +559,7 @@ class Player:
             #코인 충돌
             for coin in server.coins:
                 if server.collide(self,coin):
-                    server.ui.coin += 1
+                    game_framework.Coin += 1
                     game_world.remove_object(coin)
                     server.coins.remove(coin)
                     break
@@ -559,12 +567,19 @@ class Player:
 
             #아이템 충돌
             for item in server.items:
-                if server.collide(self,item):
+                if server.collide(self,item) and item.active == 1:
                     self.transTimer = time.time()
                     self.upgrade(item.case)
-                    game_world.remove_object(item)
-                    server.items.remove(item)
-                    break
+                    if item.case == 2:
+                        item.case = -2
+                        item.active = 0
+                        item.show = 0
+                        item.y = 585
+                        break
+                    else:
+                        game_world.remove_object(item)
+                        server.items.remove(item)
+                        break
 
     def death_check(self):
         if server.ui.alarm <= 0: self.power = -1
@@ -591,7 +606,9 @@ class Player:
                 game_world.remove_object(server.player)
 
         if self.x >= 700 and game_framework.cur_level != 4:
-            game_framework.clear_level += 1
+            if game_framework.cur_level < game_framework.clear_level:
+                pass
+            else: game_framework.clear_level = game_framework.cur_level + 1
             game_framework.change_state(select_state)
 
 

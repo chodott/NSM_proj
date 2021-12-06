@@ -6,6 +6,7 @@ stack = None
 clear_level = 4
 cur_level = 0
 Life = 3
+Coin = 0
 PIXEL_PER_METER = (10.0 / 0.3)
 GRAVITY_SPEED_KMPH = 35.0
 GRAVITY_SPEED_MPM = (GRAVITY_SPEED_KMPH * 1000.0 / 60.0)

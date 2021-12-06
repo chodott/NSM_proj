@@ -22,7 +22,7 @@ def enter():
 
     if game_framework.cur_level != 4:
         #아이템
-        server.items = [Item() for i in range(5)]
+        server.items = [Item() for i in range(10)]
         game_world.add_objects(server.items,1)
         #블럭
         server.ibs = [Block() for i in range(10)]
