@@ -17,6 +17,9 @@ def enter():
     server.player = Player()
     game_world.add_object(server.player, 1)
 
+    server.fbs = [FireBall() for i in range(10)]
+    game_world.add_objects(server.fbs,1)
+
     if game_framework.cur_level != 4:
         #아이템
         server.items = [Item() for i in range(5)]
@@ -48,7 +51,7 @@ def enter():
         game_world.add_object(server.flag,1)
 
         #비행정
-        if game_framework.cur_level == 4 or game_framework.cur_level == 2:
+        if game_framework.cur_level == 3 or game_framework.cur_level == 2:
             server.aircraft = Aircraft()
             game_world.add_object(server.aircraft, 1)
     #보스 방
@@ -152,7 +155,7 @@ def initialize():
     elif game_framework.cur_level == 2:
 
         #적
-        server.goombas[0].x, server.oombas[0].y = 270, 120
+        server.goombas[0].x, server.goombas[0].y = 270, 120
         server.goombas[1].x, server.goombas[1].y = 300, 120
 
         # 플랫폼
@@ -170,40 +173,40 @@ def initialize():
             server.grassTile1[i].x, server.grassTile1[i].y = 15 + 30 * (i - 100), 15
 
         # 아이템 블록 선언
-        for ib in ibs: ib.case = 1
-        ibs[0].x, ibs[0].y = 300, 150
-        ibs[1].x, ibs[1].y = 330, 150
-        ibs[2].x, ibs[2].y = 360, 150
-        ibs[3].x, ibs[3].y = 390, 150
-        ibs[4].x, ibs[4].y = 420, 150
+        for ib in server.ibs: ib.case = 1
+        server.ibs[0].x, server.ibs[0].y = 300, 150
+        server.ibs[1].x, server.ibs[1].y = 330, 150
+        server.ibs[2].x, server.ibs[2].y = 360, 150
+        server.ibs[3].x, server.ibs[3].y = 390, 150
+        server.ibs[4].x, server.ibs[4].y = 420, 150
 
         #노말 블록
-        nbs[0].x, nbs[0].y = 30 * 33, 200; nbs[1].x, nbs[1].y = 30 * 33, 230; nbs[2].x, nbs[2].y = 30*33, 260
-        nbs[3].x, nbs[3].y = 30*34, 200; nbs[4].x, nbs[4].y = 30*35, 200; nbs[5].x, nbs[5].y = 30*36, 200
-        nbs[6].x, nbs[6].y = 30*36, 230; nbs[7].x, nbs[7].y = 30*36, 260; nbs[8].x, nbs[8].y = 30*37, 260;
-        nbs[9].x, nbs[9].y = 30*38, 260; nbs[10].x, nbs[10].y = 30*38, 230; nbs[11].x, nbs[11].y = 30*38, 200;
-        nbs[12].x, nbs[12].y = 30*39, 200; nbs[13].x, nbs[13].y = 30*40, 200; nbs[14].x, nbs[14].y = 30*41, 200;
-        nbs[15].x, nbs[15].y = 30*41, 230; nbs[16].x, nbs[16].y = 30*41, 260;
+        server.nbs[0].x, server.nbs[0].y = 30 * 33, 200; server.nbs[1].x, server.nbs[1].y = 30 * 33, 230; server.nbs[2].x, server.nbs[2].y = 30*33, 260
+        server.nbs[3].x, server.nbs[3].y = 30*34, 200; server.nbs[4].x, server.nbs[4].y = 30*35, 200; server.nbs[5].x, server.nbs[5].y = 30*36, 200
+        server.nbs[6].x, server.nbs[6].y = 30*36, 230; server.nbs[7].x, server.nbs[7].y = 30*36, 260; server.nbs[8].x, server.nbs[8].y = 30*37, 260;
+        server.nbs[9].x, server.nbs[9].y = 30*38, 260; server.nbs[10].x, server.nbs[10].y = 30*38, 230; server.nbs[11].x, server.nbs[11].y = 30*38, 200;
+        server.nbs[12].x, server.nbs[12].y = 30*39, 200; server.nbs[13].x, server.nbs[13].y = 30*40, 200; server.nbs[14].x, server.nbs[14].y = 30*41, 200;
+        server.nbs[15].x, server.nbs[15].y = 30*41, 230; server.nbs[16].x, server.nbs[16].y = 30*41, 260;
 
         #코인
-        coins[0].x, coins[0].y = 30*34,230; coins[1].x, coins[1].y = 30*34,260; coins[2].x, coins[2].y = 30*35,260;
-        coins[3].x, coins[3].y = 30 * 35, 230; coins[4].x, coins[4].y = 30*39, 230; coins[5].x, coins[5].y = 30*39, 260
-        coins[6].x, coins[6].y = 30 * 40, 230; coins[7].x, coins[7].y = 30*40, 260
+        server.coins[0].x, server.coins[0].y = 30*34,230; server.coins[1].x, server.coins[1].y = 30*34,260; server.coins[2].x, server.coins[2].y = 30*35,260;
+        server.coins[3].x, server.coins[3].y = 30 * 35, 230; server.coins[4].x, server.coins[4].y = 30*39, 230; server.coins[5].x, server.coins[5].y = 30*39, 260
+        server.coins[6].x, server.coins[6].y = 30 * 40, 230; server.coins[7].x, server.coins[7].y = 30*40, 260
 
         #비행정
-        aircraft.active = 2; aircraft.x, aircraft.y = 30 * 58, 200
+        server.aircraft.active = 2; server.aircraft.x, server.aircraft.y = 30 * 58, 200
 
         # 엔딩 블록
-        for eb in ebs:
+        for eb in server.ebs:
             eb.case = 2
         cnt = 0
         for i in range(1, 8):
             for j in range(9 - i):
-                ebs[cnt].x, ebs[cnt].y = 2310 - 30 * j, 45 + i * 30
+                server.ebs[cnt].x, server.ebs[cnt].y = 2310 - 30 * j, 45 + i * 30
                 cnt += 1
         for i in range(4,7):
             for j in range(i):
-                ebs[cnt].x, ebs[cnt].y = 300 + 90*i, 45 + j * 30
+                server.ebs[cnt].x, server.ebs[cnt].y = 300 + 90*i, 45 + j * 30
                 cnt += 1
         pass
 
@@ -211,43 +214,43 @@ def initialize():
     elif game_framework.cur_level == 3:
 
         #적
-        troopas[0].x, troopas[0].y, troopas[0].condition = 30 * 30, 100, 2
-        troopas[1].x, troopas[1].y, troopas[1].condition = 30 * 35, 150, 2
+        server.troopas[0].x, server.troopas[0].y, server.troopas[0].condition = 30 * 30, 100, 2
+        server.troopas[1].x, server.troopas[1].y, server.troopas[1].condition = 30 * 35, 150, 2
 
         #플랫폼
         for i in range(0, 30):
-            grassTile1[i].case = 0
-            grassTile1[i].x, grassTile1[i].y = 2115 + 30 * i, 45
+            server.grassTile1[i].case = 0
+            server.grassTile1[i].x, server.grassTile1[i].y = 2115 + 30 * i, 45
         for i in range(100, 130):
-            grassTile1[i].case = 1
-            grassTile1[i].x, grassTile1[i].y = 2115 + 30 * (i - 100), 15
+            server.grassTile1[i].case = 1
+            server.grassTile1[i].x, server.grassTile1[i].y = 2115 + 30 * (i - 100), 15
 
         #아이템 블록
-        for ib in ibs: ib.case = 1
-        ibs[0].x, ibs[0].y = 30 * 5, 200
+        for ib in server.ibs: ib.case = 1
+        server.ibs[0].x, server.ibs[0].y = 30 * 5, 200
 
         #노멀 블록
-        nbs[0].x, nbs[0].y = 30 * 10, 165; nbs[1].x, nbs[1].y = 30 * 10, 195
-        nbs[2].x, nbs[2].y = 30 * 13, 255; nbs[3].x, nbs[3].y = 30 * 13, 285;
-        nbs[4].x, nbs[4].y = 30 * 16, 345; nbs[5].x, nbs[5].y = 30 * 16, 375;
-        nbs[6].x, nbs[6].y = 30 * 19, 405; nbs[7].x, nbs[7].y = 30 * 19, 435;
-        nbs[8].x, nbs[8].y = 30 * 22, 435; nbs[9].x, nbs[9].y = 30 * 22, 465;
+        server.nbs[0].x, server.nbs[0].y = 30 * 10, 165; server.nbs[1].x, server.nbs[1].y = 30 * 10, 195
+        server.nbs[2].x, server.nbs[2].y = 30 * 13, 255; server.nbs[3].x, server.nbs[3].y = 30 * 13, 285;
+        server.nbs[4].x, server.nbs[4].y = 30 * 16, 345; server.nbs[5].x, server.nbs[5].y = 30 * 16, 375;
+        server.nbs[6].x, server.nbs[6].y = 30 * 19, 405; server.nbs[7].x, server.nbs[7].y = 30 * 19, 435;
+        server.nbs[8].x, server.nbs[8].y = 30 * 22, 435; server.nbs[9].x, server.nbs[9].y = 30 * 22, 465;
         cnt = 10
         for i in range(12):
-            nbs[cnt].x, nbs[cnt].y = 30 * 25, 150 + i * 30
+            server.nbs[cnt].x, server.nbs[cnt].y = 30 * 25, 150 + i * 30
             cnt += 1
 
 
         #비행정
-        aircraft.x, aircraft.y, aircraft.w = 190, 100, 390
+        server.aircraft.x, server.aircraft.y, server.aircraft.w = 190, 100, 390
 
         # 엔딩 블록
-        for eb in ebs:
+        for eb in server.ebs:
             eb.case = 2
         cnt = 0
         for i in range(1, 8):
             for j in range(9 - i):
-                ebs[cnt].x, ebs[cnt].y = 2325 - 30 * j, 45 + i * 30
+                server.ebs[cnt].x, server.ebs[cnt].y = 2325 - 30 * j, 45 + i * 30
                 cnt += 1
 
 

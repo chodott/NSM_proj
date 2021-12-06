@@ -38,7 +38,7 @@ class Goomba:
         self.deathtime = 0
 
     def get_bb(self):
-        if self.condition == 1 or self.condition == -1: return 0,0,0,0
+        if self.condition == 1 or self.condition == -1: return -100,-100,-100,-100
         return self.x-15, self.y-15, self.x+15, self.y+15
 
     def draw(self):
@@ -300,6 +300,7 @@ class Koopa:
         self.dir = -1
         self.frame = 0
         self.condition = 0 #0 == idle 1 == attack 2 == death
+        self.hitcnt = 0
         self.gravity = 0
         self.timer = 0
         self.hitTimer = 0
@@ -316,15 +317,24 @@ class Koopa:
         if (int)(self.hitTimer) != 0 and (int)(self.frame) % 2 == 0:
             self.image.clip_draw(0,0,0,0,self.x,self.y)
         elif self.condition == 0:
-            self.image.clip_draw((int)(self.frame) * 100, 0, 100, 100, self.x, self.y)
+            if self.dir == -1: self.image.clip_draw((int)(self.frame) * 100, 0, 100, 100, self.x, self.y)
+            else: self.image.clip_draw((int)(self.frame) * 100, 100, 100, 100, self.x, self.y)
         elif self.condition == 1:
-            if time.time() - self.timer <= 0.4: self.image.clip_draw(self.power*100, 100, 100, 100, self.x, self.y)
-            elif time.time() - self.timer <= 0.6: self.image.clip_draw(0, 200, 100, 100, self.x, self.y)
-            elif time.time() - self.timer <= 0.8: self.image.clip_draw(100, 200, 70, 70, self.x, self.y)
-            elif time.time() - self.timer <= 1.0: self.image.clip_draw(170, 200, 60, 60, self.x, self.y)
-            else: self.image.clip_draw((int)(self.frame) * 60 + 240, 200, 60, 60, self.x, self.y)
+            if self.dir == -1:
+                if time.time() - self.timer <= 0.4: self.image.clip_draw(self.power*100, 200, 100, 100, self.x, self.y)
+                elif time.time() - self.timer <= 0.6: self.image.clip_draw(0, 300, 100, 100, self.x, self.y)
+                elif time.time() - self.timer <= 0.8: self.image.clip_draw(100, 310, 70, 70, self.x, self.y)
+                elif time.time() - self.timer <= 1.0: self.image.clip_draw(170, 310, 60, 60, self.x, self.y)
+                else: self.image.clip_draw((int)(self.frame) * 60 + 240, 300, 60, 60, self.x, self.y)
+            else:
+                if time.time() - self.timer <= 0.4: self.image.clip_draw(500 - self.power*100, 200, 100, 100, self.x, self.y)
+                elif time.time() - self.timer <= 0.6: self.image.clip_draw(500, 400, 100, 100, self.x, self.y)
+                elif time.time() - self.timer <= 0.8: self.image.clip_draw(430, 420, 70, 70, self.x, self.y)
+                elif time.time() - self.timer <= 1.0: self.image.clip_draw(370, 420, 60, 60, self.x, self.y)
+                else: self.image.clip_draw((int)(self.frame) * 60 + 240, 300, 60, 60, self.x, self.y)
         elif self.condition == 2:
-            self.image.clip_draw(0, 400, 100, 100, self.x, self.y)
+            if self.dir == -1: self.image.clip_draw(0, 400, 115, 100, self.x, self.y)
+            else: self.image.clip_draw(115, 400, 115, 100, self.x, self.y)
 
 
     def stop(self):
@@ -348,9 +358,6 @@ class Koopa:
     def attack(self):
         if self.timer == 0:
             self.timer = time.time()
-            if server.player.x < self.x:
-                self.dir = -1
-            else: self.dir = 1
         elif 1.0 < time.time() - self.timer <= 5:
             self.x += self.speed * self.dir * 25
             if 2 < time.time() - self.timer <= 3 and self.power > 1:
@@ -371,11 +378,18 @@ class Koopa:
         elif time.time() - self.timer >= 2:
             self.condition = 1
             self.timer = 0
+        if server.player.x < self.x:
+            self.dir = -1
+        else:
+            self.dir = 1
 
-    def hit(self):
-        if self.hitTimer == 0:
+    def hit(self, case):
+        if case == 1:
+            self.hitcnt += 1
+        if self.hitTimer == 0 and (case == 0 or self.hitcnt == 5):
             self.hitTimer = time.time()
             self.power += 1
+            self.hitcnt = 0
         if self.power == 3:
             self.condition = 2
 

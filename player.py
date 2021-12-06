@@ -37,7 +37,7 @@ GRAVITY_SPEED_MPM = (GRAVITY_SPEED_KMPH * 1000.0 / 60.0)
 GRAVITY_SPEED_MPS = (GRAVITY_SPEED_MPM / 60.0)
 GRAVITY_SPEED_PPS = (GRAVITY_SPEED_MPS * PIXEL_PER_METER)
 
-BALL_SPEED_KMPH = 60.0
+BALL_SPEED_KMPH = 50.0
 BALL_SPEED_MPM = (BALL_SPEED_KMPH * 1000.0 / 60.0)
 BALL_SPEED_MPS = (BALL_SPEED_MPM / 60.0)
 BALL_SPEED_PPS = (BALL_SPEED_MPS * PIXEL_PER_METER)
@@ -178,14 +178,18 @@ class RunState:
         if -MAX_SPEED_PPS < player.speed/game_framework.frame_time < MAX_SPEED_PPS:
             if player.dir == 1: player.accel += ACCEL_PPS
             elif player.dir == -1: player.accel -= ACCEL_PPS
-        player.collide_check()
         player.speed = (player.dir*RUN_SPEED_PPS + player.accel) * game_framework.frame_time
+        player.collide_check()
         if player.move: player.distance += player.speed
-        if player.gap != 0: player.gap = 0
         if game_framework.cur_level == 4:
             player.x += player.speed
-        elif player.distance < 400 or player.distance > 2600 or player.move == 0:
+        elif player.distance < 400 or player.distance > 2600:
             player.x += player.speed
+            player.gap = 0
+        elif player.move == 0:
+            player.x += player.speed
+            player.gap = 0
+            pass
         else:
             player.gap = player.speed
         if player.jumping:
@@ -344,7 +348,7 @@ class Player:
     def __init__(self):
         self.image = load_image('mini30.png')
         self.w, self.h = 30, 30
-        self.power = 0
+        self.power = 2
         self.accel = ACCEL_PPS
         self.frame = 0
         self.idle_dir = 1
@@ -358,9 +362,9 @@ class Player:
         self.mark = 0
         self.gravity = 0
         self.distance = 0
-        self.onAir = 1
         self.hitTimer = 0
         self.sit = 0
+        self.cnt = 0
         self.event_que = []
         self.cur_state = IdleState
         self.cur_state.enter(self,None)
@@ -378,7 +382,6 @@ class Player:
 
     def stop(self):
         self.gravity = 0
-        self.onAir = 0
 
     def attack(self):
         self.jumping = 1
@@ -386,8 +389,7 @@ class Player:
         self.maxjump = 80
 
     def meetwall(self):
-        self.x -= self.speed * 2
-        #self.gap = -self.speed * 2
+        self.x -= self.speed
         self.accel = 0
         self.move = 0
 
@@ -418,7 +420,7 @@ class Player:
             if server.collide(self, server.koopa):
                 if self.y - self.h / 2 >= server.koopa.y + 20 and server.koopa.condition == 0:
                     self.attack()
-                    server.koopa.hit()
+                    server.koopa.hit(0)
                 else:
                     self.hit()
 
@@ -431,6 +433,7 @@ class Player:
                 self.cur_state = EndState
                 self.x = server.flag.x
                 server.flag.condi = 1
+                return
 
             #토관 충돌
             for pipe in server.pipes:
@@ -449,7 +452,10 @@ class Player:
             #플랫폼 충돌
             for grass in server.grassTile1:
                 if server.collide(self,grass):
-                    self.stop()
+                    if self.y - self.h / 2 > grass.y + 10:
+                        self.stop()
+                    else:
+                        self.meetwall()
                     break
 
             #비행정 충돌
@@ -462,20 +468,20 @@ class Player:
                         self.y += server.aircraft.speed * 2
 
             #아이템 블록 충돌
+            jumped = 0
             for ib in server.ibs:
                 if server.collide(self, ib):
                     if self.y - self.h / 2 > ib.y + 10:
                         self.stop()
                         break
-                    elif self.y + self.h / 2 <= ib.y - 10 and self.jumping == 1:
+                    elif self.y + self.h / 2 <= ib.y - 10 and (self.jumping == 1 or jumped):
                         if ib.broke != 1:
                             server.items[server.ibs.index(ib)].x = ib.x
                             server.items[server.ibs.index(ib)].y = ib.y + 3
                             server.items[server.ibs.index(ib)].hit()
                             ib.broke = 1;
                         self.jumping = 0
-                        #이거 뺴는거 고려해봐
-                        #self.y -= JUMP_SPEED_PPS * game_framework.frame_time
+                        jumped = 1
                         break
                     elif ib.x + 10 < self.x - 15 < ib.x + 15:
                         self.meetwall()
@@ -490,7 +496,7 @@ class Player:
                     if self.y - self.h / 2 >= nb.y + 10:
                         self.stop()
                         break
-                    elif self.y + self.h / 2 <= nb.y - 10 and self.jumping == 1:
+                    elif self.y + self.h / 2 <= nb.y - 10 and (self.jumping == 1 or jumped):
                         if self.power >= 1:
                             nb.broke = 1
                             server.nbs.remove(nb)
@@ -601,9 +607,11 @@ class Player:
             self.cur_state.enter(self,event)
 
     def fire_ball(self):
-        if self.power == 2 and time.time() - self.transTimer > 0.5:
-            self.fb[self.fbcnt].x, self.fb[self.fbcnt].y, self.fb[self.fbcnt] = self.x, self.y, self.dir
-            self.fbcnt = (self.fbcnt + 1) % 10
+        if self.power == 2 and time.time() - self.transTimer > 0.3:
+            self.transTimer = time.time()
+            server.fbs[self.cnt].active = 1
+            server.fbs[self.cnt].x = self.x; server.fbs[self.cnt].y = self.y; server.fbs[self.cnt].dir = self.idle_dir
+            self.cnt = (self.cnt + 1) % 10
             pass
 
     def warp(self):
@@ -626,22 +634,95 @@ class FireBall:
     def __init__(self):
         if FireBall.image == None:
             self.image = load_image('fireball.png')
-        self.x, self.y = 100, -100
-        self.dir = dir
-        self.speed = BALL_SPEED_PPS
-        self.upspeed = 0
-        self.condition = 0
+        self.x, self.y = -100, -100
+        self.dir = 0
+        self.active = 0
+        self.speed = 0
+        self.timer = 0
         self.frame = 0
 
     def draw(self):
-        self.image.clip_draw(self.frame*20,0,20,20,self.x,self.y)
+        if self.active == 1:
+            self.image.clip_draw(self.frame*20,0,20,20,self.x,self.y)
 
     def get_bb(self):
-        return self.x - 15, self.y - 15, self.x + 15, self.y + 15
+        return self.x - 10, self.y - 10, self.x + 10, self.y + 10
 
     def update(self):
-        self.x += server.player.gap
-        self.x += BALL_SPEED_PPS * game_framework.frame_time * self.dir
-        self.y -= GRAVITY_SPEED_PPS * game_framework.frame_time
-        self.frame = (int)(self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 4
+        if self.active == 1:
+            self.x -= server.player.gap
+            self.x += BALL_SPEED_PPS * game_framework.frame_time * self.dir
+            if self.timer != 0:
+                self.y += GRAVITY_SPEED_PPS * game_framework.frame_time
+                if time.time() - self.timer >= 0.1:
+                    self.timer = 0
+            else: self.y -= GRAVITY_SPEED_PPS * game_framework.frame_time
+            self.frame = (int)(self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 4
+            self.collide_check()
         pass
+
+    def collide_check(self):
+        if game_framework.cur_level == 4:
+            if server.collide(self, server.koopa):
+                self.active = 0
+                if server.koopa.condition == 0:
+                    server.koopa.hit(1)
+                return
+
+            elif server.collide(self,server.arena):
+                self.timer = time.time()
+                return
+
+        if self.y == 10:
+            self.active = 0
+            return
+
+
+        for grass in server.grassTile1:
+            if server.collide(self,grass):
+                self.timer = time.time()
+                return
+
+        for pipe in server.pipes:
+            if server.collide(self,pipe):
+                if self.y - 10 >= pipe.y + 10:
+                    self.timer = time.time()
+                else:
+                    self.active = 0
+                    return
+
+        for ib in server.ibs:
+            if server.collide(self,ib):
+                if self.y - 10 >= ib.y + 10:
+                    self.timer = time.time()
+                else:
+                    self.active = 0
+                    return
+
+        for nb in server.nbs:
+            if server.collide(self,nb):
+                if self.y - 10 >= nb.y + 10:
+                    self.timer = time.time()
+                else:
+                    self.active = 0
+                    return
+
+        for eb in server.ebs:
+            if server.collide(self,eb):
+                if self.y - 10 >= eb.y + 10:
+                    self.timer = time.time()
+                else:
+                    self.active = 0
+                    return
+
+        for goomba in server.goombas:
+            if server.collide(self,goomba):
+                goomba.hit(1)
+                self.active = 0
+                return
+
+        for troopa in server.troopas:
+            if server.collide(self,troopa):
+                troopa.death()
+                self.active = 0
+                return

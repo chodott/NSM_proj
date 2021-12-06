@@ -13,7 +13,7 @@ goombas = []
 troopas = []
 boos = []
 aircraft = None
-fireball = []
+fbs = []
 ui = None
 
 def collide(a, b):

@@ -55,7 +55,7 @@ def draw():
     global select
     global ui
     clear_canvas()
-    image.draw(400,300)
+    image.clip_draw((game_framework.clear_level-1) * 800, 0, 800, 600, 400,300)
     select.draw()
     ui.draw()
     update_canvas()
