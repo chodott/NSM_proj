@@ -236,8 +236,19 @@ class Background:
     image = None
     def __init__(self):
         self.x, self.y = 1500, 300
+        self.bk_sound = None
         if Background.image == None:
             Background.image = load_image('bg-grassland.png')
+        if game_framework.cur_level == 1:
+            self.bk_sound = load_wav('stage1.wav')
+        elif game_framework.cur_level == 2:
+            self.bk_sound = load_wav('stage2.wav')
+        elif game_framework.cur_level == 3:
+            self.bk_sound = load_wav('stage3.wav')
+        elif game_framework.cur_level == 4:
+            self.bk_sound = load_wav('stage4.wav')
+        self.bk_sound.set_volume(32)
+        self.bk_sound.repeat_play()
 
     def draw(self):
         self.image.clip_draw(0,2400 - 600*game_framework.cur_level, 3000, 600, self.x, self.y)

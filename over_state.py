@@ -7,7 +7,11 @@ name = "OverState"
 
 def enter():
     global image
+    global over_sound
     image = load_image('gameover.png')
+    over_sound = load_wav('GameOver.wav')
+    over_sound.set_volume(32)
+    over_sound.play()
     pass
 
 

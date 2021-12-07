@@ -28,7 +28,7 @@ def update():
     global loadTimer
     global ui
     ui.update()
-    if time.time() - loadTimer > 1:
+    if time.time() - loadTimer > 1.5:
         game_framework.change_state(main_state)
     pass
 

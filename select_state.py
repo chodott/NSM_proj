@@ -28,9 +28,13 @@ def enter():
     global image
     global select
     global ui
+    global select_sound
+    select_sound = load_wav('world1.wav')
+    select_sound.set_volume(32)
     select = SELECT()
     ui = UI(name)
     image = load_image('select.png')
+    select_sound.play()
     pass
 
 
@@ -38,9 +42,11 @@ def exit():
     global image
     global select
     global ui
+    global select_sound
     del(image)
     del(select)
     del(ui)
+    del(select_sound)
     pass
 
 

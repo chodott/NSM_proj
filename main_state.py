@@ -107,10 +107,10 @@ def initialize():
 
     #1단계 초기화
     if game_framework.cur_level == 1:
-        server.goombas[0].x, server.goombas[0].y = 510, 115
-        server.goombas[1].x, server.goombas[1].y = 1000,115
-        server.goombas[2].x, server.goombas[2].y = 1250,115
-        server.goombas[3].x, server.goombas[3].y = 1280,115
+        server.goombas[0].x, server.goombas[0].y = 510, 118
+        server.goombas[1].x, server.goombas[1].y = 1000,118
+        server.goombas[2].x, server.goombas[2].y = 1250,118
+        server.goombas[3].x, server.goombas[3].y = 1280,118
 
         #아이템 블록 선언
         for ib in server.ibs: ib.case = 1
@@ -155,8 +155,8 @@ def initialize():
     elif game_framework.cur_level == 2:
 
         #적
-        server.goombas[0].x, server.goombas[0].y = 270, 120
-        server.goombas[1].x, server.goombas[1].y = 300, 120
+        server.goombas[0].x, server.goombas[0].y = 270, 118
+        server.goombas[1].x, server.goombas[1].y = 300, 118
 
         # 플랫폼
         for i in range(0, 30):

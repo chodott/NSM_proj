@@ -7,12 +7,18 @@ name = "StartState"
 
 def enter():
     global image
+    global sound
     image = load_image('start.png')
+    sound = load_wav('title.wav')
+    sound.set_volume(32)
+    sound.repeat_play()
     pass
 
 
 def exit():
     global image
+    global sound
+    del(sound)
     del(image)
     pass
 

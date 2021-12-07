@@ -304,6 +304,8 @@ class Koopa:
         self.gravity = 0
         self.timer = 0
         self.hitTimer = 0
+        self.sound = load_wav('bowser.wav')
+        self.sound.set_volume(200)
 
     def get_bb(self):
         if self.condition == 1:
@@ -358,6 +360,7 @@ class Koopa:
     def attack(self):
         if self.timer == 0:
             self.timer = time.time()
+            self.sound.play()
         elif 1.0 < time.time() - self.timer <= 5:
             self.x += self.speed * self.dir * 25
             if 2 < time.time() - self.timer <= 3 and self.power > 1:

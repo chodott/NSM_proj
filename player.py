@@ -80,6 +80,7 @@ class IdleState:
             player.mark = player.y
             player.maxjump = 150
             player.y += JUMP_SPEED_PPS * game_framework.frame_time
+            player.jump_sound.play()
 
     def exit(player, event):
         if event == SPACE:
@@ -166,6 +167,7 @@ class RunState:
             player.maxjump = 150
             player.mark = player.y
             player.y += JUMP_SPEED_PPS * game_framework.frame_time
+            player.jump_sound.play()
 
     def exit(player, event):
         if event == SPACE:
@@ -272,6 +274,7 @@ class EndState:
             player.y -= player.gravity /2
 
         else:
+            player.endstate_sound.play()
             player.x += RUN_SPEED_PPS * game_framework.frame_time * 2
             player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 4
         player.death_check()
@@ -371,6 +374,31 @@ class Player:
         self.cur_state = IdleState
         self.cur_state.enter(self,None)
 
+        self.jump_sound = load_wav('ya.wav')
+        self.jump_sound.set_volume(32)
+        self.death_sound = load_wav('lose.wav')
+        self.death_sound.set_volume(32)
+        self.fb_sound = load_wav('fireball.wav')
+        self.fb_sound.set_volume(32)
+        self.attack_sound = load_wav('attack.wav')
+        self.attack_sound.set_volume(32)
+        self.coin_sound = load_wav('coin.wav')
+        self.coin_sound.set_volume(32)
+        self.up1_sound = load_wav('1up.wav')
+        self.up1_sound.set_volume(32)
+        self.powerup_sound = load_wav('powerup.wav')
+        self.powerup_sound.set_volume(16)
+        self.endstate_sound = load_wav('endstate.wav')
+        self.endstate_sound.set_volume(10)
+        self.hit_sound = load_wav('damage.wav')
+        self.endstate_sound.set_volume(16)
+        self.flag_sound = load_wav('flagdown.wav')
+        self.flag_sound.set_volume(32)
+        self.item_sound = load_wav('item.wav')
+        self.item_sound.set_volume(32)
+        self.block_sound = load_wav('block.wav')
+        self.block_sound.set_volume(32)
+
 
     def get_bb(self):
         if self.sit:
@@ -389,6 +417,7 @@ class Player:
         self.jumping = 1
         self.mark = self.y
         self.maxjump = 80
+        self.attack_sound.play()
 
     def meetwall(self):
         self.x -= self.speed
@@ -397,6 +426,7 @@ class Player:
 
     def hit(self):
         if self.hitTimer == 0 and self.power > -1:
+            self.hit_sound.play()
             self.power -= 1
             self.hitTimer = time.time()
             if self.power == 0:
@@ -405,9 +435,11 @@ class Player:
 
     def upgrade(self, type=-1):
         if type == 0 and self.power == 0:
+            self.powerup_sound.play()
             self.power = 1
             self.trans = 1
-        elif type == 1:
+        elif type == 1 and self.power == 1:
+            self.powerup_sound.play()
             self.power = 2
             self.trans = 1
         elif type == 2:
@@ -437,6 +469,7 @@ class Player:
         else:
             #깃발 충돌
             if server.collide(self, server.flag):
+                self.flag_sound.play()
                 self.cur_state = EndState
                 self.x = server.flag.x
                 server.flag.condi = 1
@@ -483,6 +516,7 @@ class Player:
                         break
                     elif self.y + self.h / 2 <= ib.y - 10 and (self.jumping == 1 or jumped):
                         if ib.broke != 1:
+                            self.item_sound.play()
                             server.items[server.ibs.index(ib)].x = ib.x
                             server.items[server.ibs.index(ib)].y = ib.y + 3
                             server.items[server.ibs.index(ib)].hit()
@@ -505,6 +539,7 @@ class Player:
 
                     elif self.y + self.h / 2 <= nb.y - 10 and (self.jumping == 1 or jumped):
                         if self.power >= 1:
+                            self.block_sound.play()
                             nb.broke = 1
                             server.nbs.remove(nb)
                             game_world.remove_object(nb)
@@ -562,6 +597,7 @@ class Player:
                     game_framework.Coin += 1
                     game_world.remove_object(coin)
                     server.coins.remove(coin)
+                    self.coin_sound.play()
                     break
 
 
@@ -575,6 +611,7 @@ class Player:
                         item.active = 0
                         item.show = 0
                         item.y = 585
+                        self.up1_sound.play()
                         break
                     else:
                         game_world.remove_object(item)
@@ -592,6 +629,7 @@ class Player:
             self.speed = 0
             self.frame = 0
             self.hitTimer = time.time()
+            self.death_sound.play()
             if game_framework.Life == -1:
                 self.cur_state = DeathState
             else:
@@ -629,6 +667,7 @@ class Player:
             server.fbs[self.cnt].active = 1
             server.fbs[self.cnt].x = self.x; server.fbs[self.cnt].y = self.y; server.fbs[self.cnt].dir = self.idle_dir
             self.cnt = (self.cnt + 1) % 10
+            self.fb_sound.play()
             pass
 
     def warp(self):
@@ -684,11 +723,18 @@ class FireBall:
                 self.active = 0
                 if server.koopa.condition == 0:
                     server.koopa.hit(1)
+                    server.player.attack_sound.play()
                 return
 
             elif server.collide(self,server.arena):
                 self.timer = time.time()
                 return
+
+        elif game_framework.cur_level == 3:
+            if server.collide(self, server.aircraft):
+                self.timer = time.time()
+                return
+
 
         if self.y == 10:
             self.active = 0
@@ -734,12 +780,14 @@ class FireBall:
 
         for goomba in server.goombas:
             if server.collide(self,goomba):
+                server.player.attack_sound.play()
                 goomba.hit(1)
                 self.active = 0
                 return
 
         for troopa in server.troopas:
             if server.collide(self,troopa):
+                server.player.attack_sound.play()
                 troopa.death()
                 self.active = 0
                 return
