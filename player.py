@@ -140,8 +140,8 @@ class IdleState:
                 if player.idle_dir == 1: player.image.clip_draw(0, 600-60, player.w, player.h, player.x, player.y)
                 elif player.idle_dir == -1: player.image.clip_draw(60, 600-60, player.w, player.h, player.x, player.y)
             elif player.power == 2:
-                if player.idle_dir == 1: player.image.clip_draw(120, 600 - 240, player.w, player.h, player.x, player.y)
-                elif player.idle_dir == -1: player.image.clip_draw(60, 600 - 180, player.w, player.h, player.x, player.y)
+                if player.idle_dir == 1: player.image.clip_draw(0, 600 - 180, player.w, player.h, player.x, player.y)
+                elif player.idle_dir == -1: player.image.clip_draw(30, 600 - 180, player.w, player.h, player.x, player.y)
 
 
 
@@ -250,13 +250,13 @@ class SitState:
 
         elif player.idle_dir == -1:
             if player.power == 0: player.image.clip_draw(360-60, 0, player.w, player.h, player.x, player.y)
-            elif player.power == 1:player.image.clip_draw(360-90, 600-40, player.w, player.h, player.x, player.y)
-            elif player.power == 2:player.image.clip_draw(600-30, 600-40, player.w, player.h, player.x, player.y)
+            elif player.power == 1:player.image.clip_draw(0, 260, player.w, player.h, player.x, player.y)
+            elif player.power == 2:player.image.clip_draw(60, 260, player.w, player.h, player.x, player.y)
 
         elif player.idle_dir == 1:
             if player.power == 0: player.image.clip_draw(360-30, 0, player.w, player.h, player.x, player.y)
-            elif player.power == 1:player.image.clip_draw(360-60, 600-40, player.w, player.h, player.x, player.y)
-            elif player.power == 2:player.image.clip_draw(360-60, 600-40, player.w, player.h, player.x, player.y)
+            elif player.power == 1:player.image.clip_draw(30, 260, player.w, player.h, player.x, player.y)
+            elif player.power == 2:player.image.clip_draw(90, 260, player.w, player.h, player.x, player.y)
 
 
 
@@ -274,9 +274,9 @@ class EndState:
             player.y -= player.gravity /2
 
         else:
-            player.endstate_sound.play()
-            player.x += RUN_SPEED_PPS * game_framework.frame_time * 2
+            player.x += RUN_SPEED_PPS * game_framework.frame_time * 3
             player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 4
+            player.endstate_sound.play()
         player.death_check()
 
     def draw(player):
@@ -284,9 +284,9 @@ class EndState:
             if player.power == 0:
                 player.image.clip_draw(150, 90, 30, 30, player.x, player.y)
             elif player.power == 1:
-                player.image.clip_draw(330,540,30,60,player.x,player.y)
-            elif player.power == 1:
-                player.image.clip_draw(330,540,30,60,player.x,player.y)
+                player.image.clip_draw(0,300,40,60,player.x,player.y)
+            elif player.power == 2:
+                player.image.clip_draw(40,300,40,60,player.x,player.y)
         else:
             if player.power == 0:
                 player.image.clip_draw(180 + 30 * (int)(player.frame), 60, player.w, player.h, player.x, player.y)
@@ -306,9 +306,9 @@ class DeathState:
 
     def do(player):
         player.frame = (player.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 4
-        if time.time() - player.hitTimer < 0.5:
-            player.y += JUMP_SPEED_PPS * game_framework.frame_time
-        player.y -= GRAVITY_SPEED_PPS * game_framework.frame_time
+        if time.time() - player.hitTimer < 1:
+            player.y += JUMP_SPEED_PPS * game_framework.frame_time/2
+        player.y -= GRAVITY_SPEED_PPS * game_framework.frame_time/2
         player.death_check()
 
 
@@ -349,11 +349,11 @@ next_state_table = {
 class Player:
     speed = 0
     x = 15
-    y = 200
+    y = 300
     def __init__(self):
         self.image = load_image('mini30.png')
         self.w, self.h = 30, 30
-        self.power = 2
+        self.power = game_framework.SavePower
         self.accel = ACCEL_PPS
         self.frame = 0
         self.idle_dir = 1
@@ -375,29 +375,29 @@ class Player:
         self.cur_state.enter(self,None)
 
         self.jump_sound = load_wav('ya.wav')
-        self.jump_sound.set_volume(32)
+        self.jump_sound.set_volume(64)
         self.death_sound = load_wav('lose.wav')
-        self.death_sound.set_volume(32)
+        self.death_sound.set_volume(64)
         self.fb_sound = load_wav('fireball.wav')
-        self.fb_sound.set_volume(32)
+        self.fb_sound.set_volume(64)
         self.attack_sound = load_wav('attack.wav')
-        self.attack_sound.set_volume(32)
+        self.attack_sound.set_volume(64)
         self.coin_sound = load_wav('coin.wav')
-        self.coin_sound.set_volume(32)
+        self.coin_sound.set_volume(64)
         self.up1_sound = load_wav('1up.wav')
-        self.up1_sound.set_volume(32)
+        self.up1_sound.set_volume(64)
         self.powerup_sound = load_wav('powerup.wav')
-        self.powerup_sound.set_volume(16)
+        self.powerup_sound.set_volume(64)
         self.endstate_sound = load_wav('endstate.wav')
-        self.endstate_sound.set_volume(10)
+        self.endstate_sound.set_volume(64)
         self.hit_sound = load_wav('damage.wav')
-        self.endstate_sound.set_volume(16)
+        self.endstate_sound.set_volume(64)
         self.flag_sound = load_wav('flagdown.wav')
-        self.flag_sound.set_volume(32)
+        self.flag_sound.set_volume(64)
         self.item_sound = load_wav('item.wav')
-        self.item_sound.set_volume(32)
+        self.item_sound.set_volume(64)
         self.block_sound = load_wav('block.wav')
-        self.block_sound.set_volume(32)
+        self.block_sound.set_volume(64)
 
 
     def get_bb(self):
@@ -471,7 +471,7 @@ class Player:
             if server.collide(self, server.flag):
                 self.flag_sound.play()
                 self.cur_state = EndState
-                self.x = server.flag.x
+                self.x = server.flag.x - 10
                 server.flag.condi = 1
                 return
 
@@ -500,12 +500,22 @@ class Player:
 
             #비행정 충돌
             if game_framework.cur_level == 2 or game_framework.cur_level == 3:
-                if server.collide(self, server.aircraft):
-                    self.stop()
-                    if game_framework.cur_level == 3:
-                        server.aircraft.active = 1
-                    elif game_framework.cur_level == 2:
-                        self.y += server.aircraft.speed * 2
+                for ac in server.aircraft:
+                    if server.collide(self, ac):
+                        if self.y - self.h / 2 > ac.y + 10:
+                            self.stop()
+                            if game_framework.cur_level == 3:
+                                ac.active = 1
+                            elif game_framework.cur_level == 2:
+                                self.y += ac.speed * 2
+                            break
+                        elif ac.x + 10 < self.x - 15 < ac.x + ac.w/2:
+                            self.meetwall()
+                            break
+                        elif ac.x - ac.w/2 < self.x + 15 < ac.x - 10:
+                            self.meetwall()
+                            break
+
 
             #아이템 블록 충돌
             jumped = 0
@@ -591,6 +601,11 @@ class Player:
                         self.hit()
                         break
 
+            if game_framework.cur_level == 2:
+                for boo in server.boos:
+                    if server.collide(self, boo):
+                        self.hit()
+
             #코인 충돌
             for coin in server.coins:
                 if server.collide(self,coin):
@@ -638,10 +653,8 @@ class Player:
         if self.power == 4:
             if game_framework.Life == -1 and self.y <= -10:
                 game_framework.change_state(over_state)
-                game_world.remove_object(server.player)
             if game_framework.Life >= 0 and self.y <= -10:
                 game_framework.change_state(load_state)
-                game_world.remove_object(server.player)
 
         if self.x >= 700 and game_framework.cur_level != 4:
             if game_framework.cur_level < game_framework.clear_level:
@@ -718,6 +731,10 @@ class FireBall:
         pass
 
     def collide_check(self):
+        if self.y == 10:
+            self.active = 0
+            return
+
         if game_framework.cur_level == 4:
             if server.collide(self, server.koopa):
                 self.active = 0
@@ -730,64 +747,60 @@ class FireBall:
                 self.timer = time.time()
                 return
 
-        elif game_framework.cur_level == 3:
-            if server.collide(self, server.aircraft):
-                self.timer = time.time()
-                return
+        else:
+            if game_framework.cur_level == 3 or game_framework.cur_level == 2:
+                for ac in server.aircraft:
+                    if server.collide(self, ac):
+                        self.timer = time.time()
+                        return
 
-
-        if self.y == 10:
-            self.active = 0
-            return
-
-
-        for grass in server.grassTile1:
-            if server.collide(self,grass):
-                self.timer = time.time()
-                return
-
-        for pipe in server.pipes:
-            if server.collide(self,pipe):
-                if self.y - 10 >= pipe.y + 10:
+            for grass in server.grassTile1:
+                if server.collide(self,grass):
                     self.timer = time.time()
-                else:
+                    return
+
+            for pipe in server.pipes:
+                if server.collide(self,pipe):
+                    if self.y - 10 >= pipe.y + 10:
+                        self.timer = time.time()
+                    else:
+                        self.active = 0
+                        return
+
+            for ib in server.ibs:
+                if server.collide(self,ib):
+                    if self.y - 10 >= ib.y + 10:
+                        self.timer = time.time()
+                    else:
+                        self.active = 0
+                        return
+
+            for nb in server.nbs:
+                if server.collide(self,nb):
+                    if self.y - 10 >= nb.y + 10:
+                        self.timer = time.time()
+                    else:
+                        self.active = 0
+                        return
+
+            for eb in server.ebs:
+                if server.collide(self,eb):
+                    if self.y - 10 >= eb.y + 10:
+                        self.timer = time.time()
+                    else:
+                        self.active = 0
+                        return
+
+            for goomba in server.goombas:
+                if server.collide(self,goomba):
+                    server.player.attack_sound.play()
+                    goomba.hit(1)
                     self.active = 0
                     return
 
-        for ib in server.ibs:
-            if server.collide(self,ib):
-                if self.y - 10 >= ib.y + 10:
-                    self.timer = time.time()
-                else:
+            for troopa in server.troopas:
+                if server.collide(self,troopa):
+                    server.player.attack_sound.play()
+                    troopa.death()
                     self.active = 0
                     return
-
-        for nb in server.nbs:
-            if server.collide(self,nb):
-                if self.y - 10 >= nb.y + 10:
-                    self.timer = time.time()
-                else:
-                    self.active = 0
-                    return
-
-        for eb in server.ebs:
-            if server.collide(self,eb):
-                if self.y - 10 >= eb.y + 10:
-                    self.timer = time.time()
-                else:
-                    self.active = 0
-                    return
-
-        for goomba in server.goombas:
-            if server.collide(self,goomba):
-                server.player.attack_sound.play()
-                goomba.hit(1)
-                self.active = 0
-                return
-
-        for troopa in server.troopas:
-            if server.collide(self,troopa):
-                server.player.attack_sound.play()
-                troopa.death()
-                self.active = 0
-                return

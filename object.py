@@ -30,35 +30,37 @@ class Block:
         return self.x-15, self.y-15, self.x+15, self.y+15
 
     def draw(self):
-        if self.broke == 0:
-            if self.case == 0:
-                if self.frame < 3:
-                    self.image.clip_draw(30*0, 60, 30, 30, self.x, self.y)
-                elif 3 <= self.frame < 6:
-                    self.image.clip_draw(30*1, 60, 30, 30, self.x, self.y)
-                elif 6 <= self.frame < 9:
-                    self.image.clip_draw(30*2, 60, 30, 30, self.x, self.y)
-                elif 9 <= self.frame < 12:
-                    self.image.clip_draw(30*3, 60, 30, 30, self.x, self.y)
+        if self.x != 0 and self.y != 0:
+            if self.broke == 0:
+                if self.case == 0:
+                    if self.frame < 3:
+                        self.image.clip_draw(30*0, 60, 30, 30, self.x, self.y)
+                    elif 3 <= self.frame < 6:
+                        self.image.clip_draw(30*1, 60, 30, 30, self.x, self.y)
+                    elif 6 <= self.frame < 9:
+                        self.image.clip_draw(30*2, 60, 30, 30, self.x, self.y)
+                    elif 9 <= self.frame < 12:
+                        self.image.clip_draw(30*3, 60, 30, 30, self.x, self.y)
 
-            elif self.case == 1:
-                if self.frame < 3:
-                    self.image.clip_draw(30*0, 30, 30, 30, self.x, self.y)
-                elif 3 <= self.frame < 6:
-                    self.image.clip_draw(30*1, 30, 30, 30, self.x, self.y)
-                elif 6 <= self.frame < 9:
-                    self.image.clip_draw(30*2, 30, 30, 30, self.x, self.y)
-                elif 9 <= self.frame < 12:
-                    self.image.clip_draw(30*3, 30, 30, 30, self.x, self.y)
+                elif self.case == 1:
+                    if self.frame < 3:
+                        self.image.clip_draw(30*0, 30, 30, 30, self.x, self.y)
+                    elif 3 <= self.frame < 6:
+                        self.image.clip_draw(30*1, 30, 30, 30, self.x, self.y)
+                    elif 6 <= self.frame < 9:
+                        self.image.clip_draw(30*2, 30, 30, 30, self.x, self.y)
+                    elif 9 <= self.frame < 12:
+                        self.image.clip_draw(30*3, 30, 30, 30, self.x, self.y)
 
-            elif self.case == 2:
-                self.image.clip_draw(30, 0, 30, 30, self.x, self.y)
-        else:
-            self.image.clip_draw(0, 0, 30, 30, self.x, self.y)
+                elif self.case == 2:
+                    self.image.clip_draw(30, 0, 30, 30, self.x, self.y)
+            else:
+                self.image.clip_draw(0, 0, 30, 30, self.x, self.y)
 
     def update(self):
-        self.x += -server.player.gap
-        self.frame = (self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 12
+        if self.x != 0 and self.y != 0:
+            self.x += -server.player.gap
+            self.frame = (self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 12
 
     pass
 
@@ -75,19 +77,21 @@ class Platform:
         return self.x-15, self.y-15, self.x+15, self.y+15
 
     def draw(self):
-        if game_framework.cur_level == 1 or game_framework.cur_level == 3:
-            if self.case == 0:
-                self.image.clip_draw(30, 30, 30, 30, self.x, self.y)
-            elif self.case == 1:
-                self.image.clip_draw(30,0,30,30,self.x,self.y)
-        elif game_framework.cur_level == 2:
-            if self.case == 0:
-                self.image.clip_draw(60, 30, 30, 30, self.x, self.y)
-            elif self.case == 1:
-                self.image.clip_draw(60,0,30,30,self.x,self.y)
+        if self.x != 0 and self.y != 0:
+            if game_framework.cur_level == 1 or game_framework.cur_level == 3:
+                if self.case == 0:
+                    self.image.clip_draw(30, 30, 30, 30, self.x, self.y)
+                elif self.case == 1:
+                    self.image.clip_draw(30,0,30,30,self.x,self.y)
+            elif game_framework.cur_level == 2:
+                if self.case == 0:
+                    self.image.clip_draw(60, 30, 30, 30, self.x, self.y)
+                elif self.case == 1:
+                    self.image.clip_draw(60,0,30,30,self.x,self.y)
 
     def update(self):
-        self.x += -server.player.gap
+        if self.x != 0 and self.y != 0:
+            self.x += -server.player.gap
         pass
 
 
@@ -201,8 +205,9 @@ class Item:
                 break
 
         if game_framework.cur_level == 2 or game_framework.cur_level == 3:
-            if server.collide(self, server.aircraft):
-                self.stop()
+            for cb in server.aircraft:
+                if server.collide(self, cb):
+                    self.stop()
 
 
     pass
@@ -220,16 +225,18 @@ class Coin:
         return self.x-15, self.y-15, self.x+15, self.y+15
 
     def draw(self):
-        if self.frame <2:
-            self.image.clip_draw(0, 0, 30, 30, self.x, self.y)
-        elif 2<=self.frame <4:
-            self.image.clip_draw(30, 0, 30, 30, self.x, self.y)
-        elif 4<=self.frame <6:
-            self.image.clip_draw(60, 0, 30, 30, self.x, self.y)
+        if self.x != 0 and self.y != 0:
+            if self.frame <2:
+                self.image.clip_draw(0, 0, 30, 30, self.x, self.y)
+            elif 2<=self.frame <4:
+                self.image.clip_draw(30, 0, 30, 30, self.x, self.y)
+            elif 4<=self.frame <6:
+                self.image.clip_draw(60, 0, 30, 30, self.x, self.y)
 
     def update(self):
-        self.x += -server.player.gap
-        self.frame = (self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 6
+        if self.x != 0 and self.y != 0:
+            self.x += -server.player.gap
+            self.frame = (self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 6
 
 
 class Background:
@@ -291,15 +298,17 @@ class Pipe:
         return self.x - 30, self.y - self.h/2, self.x + 30, self.y + self.h/2
 
     def draw(self):
-        if self.h == 60:
-            self.image.clip_draw(0,0,60,60,self.x, self.y)
-        elif self.h == 90:
-            self.image.clip_draw(60, 0, 60, 90, self.x, self.y)
-        elif self.h == 120:
-            self.image.clip_draw(120, 0, 60, 120, self.x, self.y)
+        if self.x != 0 and self.y != 0:
+            if self.h == 60:
+                self.image.clip_draw(0,0,60,60,self.x, self.y)
+            elif self.h == 90:
+                self.image.clip_draw(60, 0, 60, 90, self.x, self.y)
+            elif self.h == 120:
+                self.image.clip_draw(120, 0, 60, 120, self.x, self.y)
 
     def update(self):
-        self.x += -server.player.gap
+        if self.x != 0 and self.y != 0:
+            self.x += -server.player.gap
         pass
 
 class Arena:
@@ -322,10 +331,10 @@ class Aircraft:
         if Aircraft.image == None:
             Aircraft.image = load_image('aircraft.png')
         self.x, self.y = 0,0
-        self.w = 390
+        self.w = 0
         self.active = 0
         self.speed = RUN_SPEED_PPS * game_framework.frame_time
-        self.boundary = 1740
+        self.boundary = 880
         self.distance = 0
 
     def get_bb(self):
@@ -337,7 +346,6 @@ class Aircraft:
             self.y += self.speed * 2
             if self.y >= 600: self.y = 0
         elif self.active == 1:
-
             if self.distance > self.boundary:
                 self.y -= self.speed * 2
             else:
@@ -346,5 +354,7 @@ class Aircraft:
         pass
 
     def draw(self):
-        self.image.clip_draw(0,370,390,30,self.x,self.y)
-        pass
+        if self.w == 390:
+            self.image.clip_draw(0,370,390,30,self.x,self.y)
+        elif self.w == 210:
+            self.image.clip_draw(0, 340, 210, 30, self.x, self.y)

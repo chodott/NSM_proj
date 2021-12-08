@@ -42,31 +42,33 @@ class Goomba:
         return self.x-15, self.y-15, self.x+15, self.y+15
 
     def draw(self):
-        if self.condition == 1: self.image.clip_draw(0,0,30,15,self.x,self.y)
-        elif self.condition == -1: self.image.clip_draw(0,30,30,30,self.x,self.y)
-        else:
-            if self.dir == -1: self.image.clip_draw(0,270-(int)(self.frame)*30,30,30,self.x,self.y)
-            elif self.dir == 1: self.image.clip_draw(30,270-(int)(self.frame)*30,30,30,self.x,self.y)
+        if self.x !=0 and self.y != 0:
+            if self.condition == 1: self.image.clip_draw(0,0,30,15,self.x,self.y)
+            elif self.condition == -1: self.image.clip_draw(0,30,30,30,self.x,self.y)
+            else:
+                if self.dir == -1: self.image.clip_draw(0,270-(int)(self.frame)*30,30,30,self.x,self.y)
+                elif self.dir == 1: self.image.clip_draw(30,270-(int)(self.frame)*30,30,30,self.x,self.y)
 
     def stop(self):
         self.gravity = 0
 
     def update(self):
-        self.gravity = GRAVITY_SPEED_PPS * game_framework.frame_time
-        self.x += -server.player.gap
-        self.collide_check()
-        if self.condition == 1:
-            if time.time() - self.deathtime > 1:
-                self.x, self.y = -10, -10
-                del(self)
+        if self.x != 0 and self.y != 0:
+            self.gravity = GRAVITY_SPEED_PPS * game_framework.frame_time
+            self.x += -server.player.gap
+            self.collide_check()
+            if self.condition == 1:
+                if time.time() - self.deathtime > 1:
+                    self.x, self.y = -10, -10
+                    del(self)
 
-        elif self.condition == -1:
-            self.y -= self.gravity
-            del(self)
-        else:
-            self.y -= self.gravity
-            self.frame = (self.frame + + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 7
-            self.x += self.speed * self.dir
+            elif self.condition == -1:
+                self.y -= self.gravity
+                del(self)
+            else:
+                self.y -= self.gravity
+                self.frame = (self.frame + + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 7
+                self.x += self.speed * self.dir
 
     def hit(self, type):
         self.deathtime = time.time()
@@ -110,12 +112,18 @@ class Goomba:
                 break
 
         if game_framework.cur_level == 2 or game_framework.cur_level == 3:
-            if server.collide(self, server.aircraft):
-                self.stop()
+            for ac in server.aircraft:
+                if server.collide(self, ac):
+                    if ac.active == 1: self.x += ac.speed
+                    if self.x <= ac.x - ac.w / 2 + 20: self.dir = 1
+                    elif self.x >= ac.x + ac.w / 2 - 20: self.dir = -1
+                    self.stop()
 
         for troopa in server.troopas:
-            if server.collide(self, troopa):
-                self.hit(1)
+            if troopa.condition == 0 and troopa.speed != 0 :
+                if server.collide(self, troopa):
+                    self.hit(1)
+                    server.player.attack_sound.play()
 
 
 
@@ -161,40 +169,41 @@ class Troopa:
         self.condition = -1
 
     def draw(self):
-        #상태에 맞는 그리기 필요
-        if self.condition == 0:
-            self.image.clip_draw(30,0 + (int)(self.frame) * 30,self.w,self.h, self.x, self.y);
-        elif self.condition == -1:
-            self.image.clip_draw(30, 90, self.w, self.h, self.x, self.y);
-        elif self.condition == 1:
-            self.image.clip_draw(0,800 - 50 - (int)(self.frame) * 50,self.w,self.h, self.x, self.y);
-        elif self.condition == 2:
-            self.image.clip_draw(0, 800 - 50 - (int)(self.frame) * 50, self.w, self.h, self.x, self.y);
+        if self.x != 0 and self.y != 0:
+            if self.condition == 0:
+                self.image.clip_draw(30,0 + (int)(self.frame) * 30,self.w,self.h, self.x, self.y);
+            elif self.condition == -1:
+                self.image.clip_draw(30, 90, self.w, self.h, self.x, self.y);
+            elif self.condition == 1:
+                self.image.clip_draw(0,800 - 50 - (int)(self.frame) * 50,self.w,self.h, self.x, self.y);
+            elif self.condition == 2:
+                self.image.clip_draw(30, 800 - 50 - (int)(self.frame) * 50, self.w, self.h, self.x, self.y);
 
 
     def update(self):
-        self.gravity = GRAVITY_SPEED_PPS * game_framework.frame_time
-        self.collide_check()
-        if self.condition == 0:
-            self.x += self.speed * self.dir
-            self.h = 30
-            if self.speed != 0: self.frame = (self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 3
-        elif self.condition == -1:
-            self.h = 30
-        elif self.condition == 1:
-            self.x += self.speed * self.dir
-            self.frame = (self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 13
-        elif self.condition == 2:
-            self.gravity = 0
-            self.frame = (self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 13
-            if self.y <= self.goal:
-                self.goal = 300
-                self.y += game_framework.frame_time * GRAVITY_SPEED_PPS / 2
-            elif self.y >= self.goal:
-                self.goal = 150
-                self.y -= game_framework.frame_time * GRAVITY_SPEED_PPS / 2
-        self.y -= self.gravity
-        self.x += -server.player.gap
+        if self.x != 0 and self.y != 0:
+            self.gravity = GRAVITY_SPEED_PPS * game_framework.frame_time
+            self.collide_check()
+            if self.condition == 0:
+                self.x += self.speed * self.dir
+                self.h = 30
+                if self.speed != 0: self.frame = (self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 3
+            elif self.condition == -1:
+                self.h = 30
+            elif self.condition == 1:
+                self.x += self.speed * self.dir
+                self.frame = (self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 13
+            elif self.condition == 2:
+                self.gravity = 0
+                self.frame = (self.frame + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 6
+                if self.y <= self.goal:
+                    self.goal = 300
+                    self.y += game_framework.frame_time * GRAVITY_SPEED_PPS / 2
+                elif self.y >= self.goal:
+                    self.goal = 150
+                    self.y -= game_framework.frame_time * GRAVITY_SPEED_PPS / 2
+            self.y -= self.gravity
+            self.x += -server.player.gap
 
     def collide_check(self):
 
@@ -219,9 +228,26 @@ class Troopa:
                 break
 
         for nb in server.nbs:
-            if server.collide(self, nb) and self.condition != -1:
-                self.stop()
-                break
+            if server.collide(self,nb):
+                if self.y - 15 >= nb.y + 10 and self.condition != -1:
+                    self.stop()
+                    break
+                elif nb.x <= self.x - 15 < nb.x + 15:
+                    self.dir = 1
+                    self.x = nb.x + 15
+                    if self.condition == 0:
+                        server.player.block_sound.play()
+                        nb.broke = 1
+                        server.nbs.remove(nb)
+                        game_world.remove_object(nb)
+                elif nb.x - 15 <= self.x + 15 < nb.x:
+                    self.dir = -1
+                    self.x = nb.x - 15
+                    if self.condition == 0:
+                        server.player.block_sound.play()
+                        nb.broke = 1
+                        server.nbs.remove(nb)
+                        game_world.remove_object(nb)
 
         for eb in server.ebs:
             if server.collide(self, eb) and self.condition != -1:
@@ -229,12 +255,13 @@ class Troopa:
                 break
 
         if game_framework.cur_level == 2 or game_framework.cur_level == 3:
-            if server.collide(self, server.aircraft):
-                self.stop()
+            for ac in server.aircraft:
+                if server.collide(self, ac):
+                    self.stop()
 
         for troopa in server.troopas:
-            if server.collide(self, troopa) and self != troopa:
-                self.hit(1)
+            if server.collide(self, troopa) and self != troopa and self.condition == 0:
+                troopa.death(1)
 
 
 class Boo:
@@ -255,45 +282,46 @@ class Boo:
         return self.x-15, self.y-15, self.x+15, self.y+15
 
     def draw(self):
-        #상태에 맞는 그리기 필요
-        if self.condition == 0 and self.dir > 0:
-            self.image.clip_draw(30,60,self.w,self.h,self.x,self.y);
+        if self.x != 0 and self.y != 0:
+            if self.condition == 0 and self.dir > 0:
+                self.image.clip_draw(30,60,self.w,self.h,self.x,self.y);
 
-        elif self.condition == 0 and self.dir < 0:
-            self.image.clip_draw(0, 60, self.w, self.h, self.x, self.y);
+            elif self.condition == 0 and self.dir < 0:
+                self.image.clip_draw(0, 60, self.w, self.h, self.x, self.y);
 
-        elif self.condition == 1 and self.dir > 0:
-            self.image.clip_draw(30, 150 - (int)(self.frame) * 30, self.w, self.h, self.x, self.y);
+            elif self.condition == 1 and self.dir > 0:
+                self.image.clip_draw(30, 150 - (int)(self.frame) * 30, self.w, self.h, self.x, self.y);
 
-        elif self.condition == 1 and self.dir < 0:
-            self.image.clip_draw(0, 150 - (int)(self.frame) * 30, self.w, self.h, self.x, self.y);
+            elif self.condition == 1 and self.dir < 0:
+                self.image.clip_draw(0, 150 - (int)(self.frame) * 30, self.w, self.h, self.x, self.y);
 
-    def update(self, px, py, pdir, idir, speed):
-        self.frame = (self.frame + + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 3
-        self.x += speed
-        if self.x < px: self.dir = 1
-        elif self.x > py: self.dir = -1
-        #플레이어와 부끄의 방향이 같을 때 부끄 정지
-        if self.dir != pdir and self.dir != idir:
-            self.condition = 0
-            self.t = 0
+    def update(self):
+        if self.x != 0 and self.y != 0:
+            self.frame = (self.frame + + FRAMES_PER_ACTION * ACTION_PER_TIME * game_framework.frame_time) % 3
+            self.x += -server.player.gap
+            if self.x < server.player.x: self.dir = 1
+            elif self.x > server.player.y: self.dir = -1
+            #플레이어와 부끄의 방향이 같을 때 부끄 정지
+            if self.dir != server.player.idle_dir and self.dir != server.player.idle_dir:
+                self.condition = 0
+                self.t = 0
 
-        #방향이 다를 때 부끄 캐릭터 방향으로
-        elif self.dir == pdir or self.dir == idir:
-            self.condition = 1
+            #방향이 다를 때 부끄 캐릭터 방향으로
+            elif self.dir == server.player.idle_dir or self.dir == server.player.idle_dir:
+                self.condition = 1
 
-        if self.condition == 1 and -500 < px - self.x < 500:
-            self.t += 1
-            t = self.t/1000000
-            self.x = (1-t) * self.x + t * px
-            self.y = (1-t) * self.y + t * py
+            if self.condition == 1 and -500 < server.player.x - self.x < 500:
+                self.t += 1
+                t = self.t/1000000
+                self.x = (1-t) * self.x + t * server.player.x
+                self.y = (1-t) * self.y + t * server.player.y
 
 class Koopa:
     image = None
     def __init__(self):
         if Koopa.image == None:
             Koopa.image = load_image('koopa.png')
-        self.x, self.y = 600, 200
+        self.x, self.y = 600, 600
         self.w, self.h = 100, 100
         self.speed = RUN_SPEED_PPS * game_framework.frame_time
         self.power = 0
@@ -349,7 +377,7 @@ class Koopa:
             self.collide_check()
         if self.condition == 0: self.rest()
         elif self.condition == 1: self.attack()
-        elif self.condition == 2: pass
+        elif self.condition == 2: server.ui.gameclear = 1
         self.y -= self.gravity
 
         #무적 처리
@@ -399,8 +427,6 @@ class Koopa:
     def collide_check(self):
         if server.collide(self,server.arena):
             self.stop()
-
-
 
 
 

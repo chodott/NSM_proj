@@ -12,7 +12,7 @@ coins = []
 goombas = []
 troopas = []
 boos = []
-aircraft = None
+aircraft = []
 fbs = []
 ui = None
 

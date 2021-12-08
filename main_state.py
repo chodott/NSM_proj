@@ -7,9 +7,6 @@ import server
 name = "MainState"
 
 def enter():
-    #UI
-    server.ui = UI(name)
-    game_world.add_object(server.ui, 1)
     #배경
     server.background = Background()
     game_world.add_object(server.background, 0)
@@ -46,20 +43,28 @@ def enter():
         game_world.add_objects(server.goombas, 1)
         game_world.add_objects(server.troopas, 1)
 
+        if game_framework.cur_level == 2:
+            server.boos = [Boo() for i in range(2)]
+            game_world.add_objects(server.boos,1)
+
         #깃발
         server.flag = Flag()
         game_world.add_object(server.flag,1)
 
         #비행정
         if game_framework.cur_level == 3 or game_framework.cur_level == 2:
-            server.aircraft = Aircraft()
-            game_world.add_object(server.aircraft, 1)
+            server.aircraft = [Aircraft() for i in range(2)]
+            game_world.add_objects(server.aircraft, 1)
     #보스 방
     else:
         server.koopa = Koopa()
         server.arena = Arena()
         game_world.add_object(server.koopa,1)
         game_world.add_object(server.arena, 1)
+
+    # UI
+    server.ui = UI(name)
+    game_world.add_object(server.ui, 1)
 
     initialize()
 
@@ -74,7 +79,22 @@ def draw():
 
 
 def exit():
+    if server.player.power == 4:
+        server.player.power = 0
+    game_framework.SavePower = server.player.power
     game_world.clear()
+    del(server.player)
+    del(server.background)
+    del(server.goombas)
+    del(server.nbs)
+    del(server.grassTile1)
+    del(server.flag)
+    del(server.coins)
+    del(server.ebs)
+    del(server.fbs)
+    del(server.items)
+    del(server.troopas)
+    del(server.ui)
     pass
 
 
@@ -107,10 +127,10 @@ def initialize():
 
     #1단계 초기화
     if game_framework.cur_level == 1:
-        server.goombas[0].x, server.goombas[0].y = 510, 118
-        server.goombas[1].x, server.goombas[1].y = 1000,118
-        server.goombas[2].x, server.goombas[2].y = 1250,118
-        server.goombas[3].x, server.goombas[3].y = 1280,118
+        server.goombas[0].x, server.goombas[0].y = 510, 150
+        server.goombas[1].x, server.goombas[1].y = 1000,150
+        server.goombas[2].x, server.goombas[2].y = 1250,150
+        server.goombas[3].x, server.goombas[3].y = 1280,150
 
         #아이템 블록 선언
         for ib in server.ibs: ib.case = 1
@@ -155,8 +175,10 @@ def initialize():
     elif game_framework.cur_level == 2:
 
         #적
-        server.goombas[0].x, server.goombas[0].y = 270, 118
-        server.goombas[1].x, server.goombas[1].y = 300, 118
+        server.goombas[0].x, server.goombas[0].y = 480, 150
+        server.goombas[1].x, server.goombas[1].y = 510, 150
+        server.boos[0].x, server.boos[0].y = 700, 400
+        server.boos[1].x, server.boos[1].y = 1400, 200
 
         # 플랫폼
         for i in range(0, 30):
@@ -194,8 +216,9 @@ def initialize():
         server.coins[6].x, server.coins[6].y = 30 * 40, 230; server.coins[7].x, server.coins[7].y = 30*40, 260
 
         #비행정
-        server.aircraft.active = 2; server.aircraft.x, server.aircraft.y = 30 * 58, 200
-
+        server.aircraft[0].active = 2; server.aircraft[0].x, server.aircraft[0].y = 30 * 50, 500
+        server.aircraft[1].active = 2; server.aircraft[1].x, server.aircraft[1].y = 30 * 58, 200
+        server.aircraft[0].w = server.aircraft[1].w = 210
         # 엔딩 블록
         for eb in server.ebs:
             eb.case = 2
@@ -216,7 +239,9 @@ def initialize():
         #적
         server.troopas[0].x, server.troopas[0].y, server.troopas[0].condition = 30 * 30, 100, 2
         server.troopas[1].x, server.troopas[1].y, server.troopas[1].condition = 30 * 35, 150, 2
-
+        server.goombas[0].x, server.goombas[0].y = 1300, 300
+        server.goombas[1].x, server.goombas[1].y = 1330, 300
+        server.goombas[2].x, server.goombas[2].y = 1360, 300
         #플랫폼
         for i in range(0, 30):
             server.grassTile1[i].case = 0
@@ -242,7 +267,9 @@ def initialize():
 
 
         #비행정
-        server.aircraft.x, server.aircraft.y, server.aircraft.w = 190, 100, 390
+        server.aircraft[0].x, server.aircraft[0].y, server.aircraft[0].w = 190, 100, 390
+        server.aircraft[1].x, server.aircraft[1].y, server.aircraft[1].w = 1500, 100, 390
+        server.aircraft[1].boundary = 300
 
         # 엔딩 블록
         for eb in server.ebs:

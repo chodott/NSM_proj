@@ -13,6 +13,8 @@ class UI:
         self.value = 3
         self.coin = 0
         self.alarm = 400
+        self.gameclear = 0
+        self.y = 700
         self.pos = name
         self.time = time.time()
 
@@ -25,6 +27,9 @@ class UI:
             server.items[9].case = 2
             server.items[9].timer = time.time()
             game_framework.Coin -= 10
+        if self.gameclear:
+            if self.y >= 350:
+                self.y -= game_framework.GRAVITY_SPEED_PPS * game_framework.frame_time
 
     def draw(self):
         #life 출력
@@ -44,3 +49,6 @@ class UI:
             self.image.clip_draw(15 * (self.alarm//100), 40, 15, 30, 740, 550)
             self.image.clip_draw(15 * (self.alarm % 100 // 10), 40, 15, 30, 755, 550)
             self.image.clip_draw(15 * (self.alarm % 100 % 10 // 1), 40, 15, 30, 770, 550)
+
+            if self.gameclear:
+                self.image.clip_draw(400,0,400,300,400,self.y)
