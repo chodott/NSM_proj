@@ -426,12 +426,15 @@ class Player:
 
     def hit(self):
         if self.hitTimer == 0 and self.power > -1:
-            self.hit_sound.play()
             self.power -= 1
             self.hitTimer = time.time()
             if self.power == 0:
+                self.hit_sound.play()
                 self.h = 30
-            else: self.h = 60
+            else:
+                if self.power == 1:
+                    self.hit_sound.play()
+                self.h = 60
 
     def upgrade(self, type=-1):
         if type == 0 and self.power == 0:

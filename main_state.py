@@ -127,10 +127,10 @@ def initialize():
 
     #1단계 초기화
     if game_framework.cur_level == 1:
-        server.goombas[0].x, server.goombas[0].y = 510, 150
-        server.goombas[1].x, server.goombas[1].y = 1000,150
-        server.goombas[2].x, server.goombas[2].y = 1250,150
-        server.goombas[3].x, server.goombas[3].y = 1280,150
+        server.goombas[0].x, server.goombas[0].y = 400, 300
+        server.goombas[1].x, server.goombas[1].y = 1000,300
+        server.goombas[2].x, server.goombas[2].y = 1250,300
+        server.goombas[3].x, server.goombas[3].y = 1280,300
 
         #아이템 블록 선언
         for ib in server.ibs: ib.case = 1
@@ -175,8 +175,8 @@ def initialize():
     elif game_framework.cur_level == 2:
 
         #적
-        server.goombas[0].x, server.goombas[0].y = 480, 150
-        server.goombas[1].x, server.goombas[1].y = 510, 150
+        server.goombas[0].x, server.goombas[0].y = 480, 220
+        server.goombas[1].x, server.goombas[1].y = 510, 220
         server.boos[0].x, server.boos[0].y = 700, 400
         server.boos[1].x, server.boos[1].y = 1400, 200
 
@@ -238,10 +238,11 @@ def initialize():
 
         #적
         server.troopas[0].x, server.troopas[0].y, server.troopas[0].condition = 30 * 30, 100, 2
-        server.troopas[1].x, server.troopas[1].y, server.troopas[1].condition = 30 * 35, 150, 2
+        server.troopas[1].x, server.troopas[1].y, server.troopas[1].condition = 1400, 300, 1
+        #server.troopas[2].x, server.troopas[2].y, server.troopas[2].condition = 1430, 300, 2
         server.goombas[0].x, server.goombas[0].y = 1300, 300
-        server.goombas[1].x, server.goombas[1].y = 1330, 300
-        server.goombas[2].x, server.goombas[2].y = 1360, 300
+        server.goombas[1].x, server.goombas[1].y = 1350, 300
+        server.goombas[2].x, server.goombas[2].y = 1400, 300
         #플랫폼
         for i in range(0, 30):
             server.grassTile1[i].case = 0

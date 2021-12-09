@@ -170,14 +170,22 @@ class Troopa:
 
     def draw(self):
         if self.x != 0 and self.y != 0:
-            if self.condition == 0:
-                self.image.clip_draw(30,0 + (int)(self.frame) * 30,self.w,self.h, self.x, self.y);
-            elif self.condition == -1:
-                self.image.clip_draw(30, 90, self.w, self.h, self.x, self.y);
-            elif self.condition == 1:
-                self.image.clip_draw(0,800 - 50 - (int)(self.frame) * 50,self.w,self.h, self.x, self.y);
-            elif self.condition == 2:
-                self.image.clip_draw(30, 800 - 50 - (int)(self.frame) * 50, self.w, self.h, self.x, self.y);
+            if self.dir == -1:
+                if self.condition == 0:
+                    self.image.clip_draw(30,0 + (int)(self.frame) * 30,self.w,self.h, self.x, self.y);
+                elif self.condition == -1:
+                    self.image.clip_draw(30, 90, self.w, self.h, self.x, self.y);
+                elif self.condition == 1:
+                    self.image.clip_draw(0,800 - 50 - (int)(self.frame) * 50,self.w,self.h, self.x, self.y);
+                elif self.condition == 2:
+                    self.image.clip_draw(30, 800 - 50 - (int)(self.frame) * 50, self.w, self.h, self.x, self.y);
+            else:
+                if self.condition == 0:
+                    self.image.clip_draw(30,0 + (int)(self.frame) * 30,self.w,self.h, self.x, self.y);
+                elif self.condition == -1:
+                    self.image.clip_draw(30, 90, self.w, self.h, self.x, self.y);
+                elif self.condition == 1:
+                    self.image.clip_draw(60,800 - 50 - (int)(self.frame) * 50,self.w,self.h, self.x, self.y);
 
 
     def update(self):
@@ -257,11 +265,15 @@ class Troopa:
         if game_framework.cur_level == 2 or game_framework.cur_level == 3:
             for ac in server.aircraft:
                 if server.collide(self, ac):
+                    if ac.active == 1: self.x += ac.speed
+                    if self.condition != 0:
+                        if self.x <= ac.x - ac.w / 2 + 20: self.dir = 1
+                        elif self.x >= ac.x + ac.w / 2 - 20: self.dir = -1
                     self.stop()
 
         for troopa in server.troopas:
             if server.collide(self, troopa) and self != troopa and self.condition == 0:
-                troopa.death(1)
+                troopa.death()
 
 
 class Boo:
@@ -324,7 +336,7 @@ class Koopa:
         self.x, self.y = 600, 600
         self.w, self.h = 100, 100
         self.speed = RUN_SPEED_PPS * game_framework.frame_time
-        self.power = 0
+        self.power = 2
         self.dir = -1
         self.frame = 0
         self.condition = 0 #0 == idle 1 == attack 2 == death
